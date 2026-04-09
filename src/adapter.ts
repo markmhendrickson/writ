@@ -10,7 +10,7 @@ import type {
  * Memory system adapter interface.
  *
  * Each adapter wraps a specific memory system (Neotoma, Mem0, a plain
- * key-value store, etc.) and exposes the operations WORKMEM needs to
+ * key-value store, etc.) and exposes the operations WRIT needs to
  * run scenarios and evaluate write-integrity properties.
  */
 export interface MemoryAdapter {
@@ -60,7 +60,7 @@ export interface MemoryAdapter {
 
 /**
  * Adapter capabilities reported during init.
- * WORKMEM uses these to adjust scoring -- systems that don't claim
+ * WRIT uses these to adjust scoring -- systems that don't claim
  * history support aren't penalized for missing temporal metrics,
  * but their scorecard shows "not supported" rather than a number.
  */

@@ -22,7 +22,7 @@ async function main() {
   const raw = await readFile(join(resultsDir, latest), "utf-8");
   const report = JSON.parse(raw) as BenchmarkReport;
 
-  console.log("# WORKMEM Benchmark Report");
+  console.log("# WRIT Benchmark Report");
   console.log(`Adapter: ${report.adapter_name}`);
   console.log(`Timestamp: ${report.timestamp}`);
   console.log(`Scenarios: ${report.scenarios_run}`);

@@ -10,7 +10,7 @@ import type {
 } from "../types.js";
 
 /**
- * Neotoma adapter for WORKMEM.
+ * Neotoma adapter for WRIT.
  *
  * Tests Neotoma's observation-based memory model:
  * - Immutable observations (append-only, no overwrites)
@@ -56,7 +56,7 @@ export class NeotomaAdapter implements MemoryAdapter {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         entities,
-        idempotency_key: `workmem-session-${session.session_id}-${Date.now()}`,
+        idempotency_key: `writ-session-${session.session_id}-${Date.now()}`,
       }),
     });
 
@@ -236,8 +236,8 @@ export class NeotomaAdapter implements MemoryAdapter {
       entities.push({
         entity_type: "contact",
         email: emailMatch[1],
-        workmem_session: session.session_id,
-        workmem_timestamp: session.timestamp,
+        writ_session: session.session_id,
+        writ_timestamp: session.timestamp,
       });
     }
 
@@ -246,8 +246,8 @@ export class NeotomaAdapter implements MemoryAdapter {
       entities.push({
         entity_type: "employment",
         company: workMatch[1]!.trim(),
-        workmem_session: session.session_id,
-        workmem_timestamp: session.timestamp,
+        writ_session: session.session_id,
+        writ_timestamp: session.timestamp,
       });
     }
 
@@ -256,17 +256,17 @@ export class NeotomaAdapter implements MemoryAdapter {
       entities.push({
         entity_type: "location",
         place: liveMatch[1]!.trim(),
-        workmem_session: session.session_id,
-        workmem_timestamp: session.timestamp,
+        writ_session: session.session_id,
+        writ_timestamp: session.timestamp,
       });
     }
 
     if (entities.length === 0) {
       entities.push({
-        entity_type: "workmem_fact",
+        entity_type: "writ_fact",
         content,
-        workmem_session: session.session_id,
-        workmem_timestamp: session.timestamp,
+        writ_session: session.session_id,
+        writ_timestamp: session.timestamp,
       });
     }
 

@@ -1,7 +1,7 @@
 {
-  "name": "workmem",
+  "name": "writ",
   "version": "0.1.0",
-  "description": "Benchmark for persistent, usable AI memory — tests write integrity, not just retrieval",
+  "description": "WRIT: Write Integrity Test for AI memory — tests whether stored facts survive agent writes",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

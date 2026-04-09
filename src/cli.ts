@@ -29,7 +29,7 @@ async function main() {
   const adapter = createAdapter(adapterName, neotomaUrl);
   const modes = modesStr.split(",") as EvaluationMode[];
 
-  console.log(`WORKMEM Benchmark`);
+  console.log(`WRIT Benchmark`);
   console.log(`Adapter: ${adapter.name}`);
   console.log(`Modes: ${modes.join(", ")}`);
   console.log(`Scenarios: ${scenarioFilter}`);
@@ -74,7 +74,7 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
   const reportPath = join(
     outputDir,
-    `workmem-${adapter.name}-${Date.now()}.json`
+    `writ-${adapter.name}-${Date.now()}.json`
   );
   await writeFile(reportPath, JSON.stringify(report, null, 2));
   console.log(`\nReport written to ${reportPath}`);
