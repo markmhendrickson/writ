@@ -1,0 +1,179 @@
+{
+  "scenario_id": "abstention-001-never-mentioned",
+  "version": "1.0.0",
+  "category": "abstention",
+  "description": "User asks about a personal fact (blood type) that was never mentioned in any session. System should recognize it has no basis to answer and abstain.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I have a doctor's appointment next Tuesday at 2pm with Dr. Chen."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted, Dr. Chen next Tuesday at 2pm. Want me to remind you?"
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-18T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Dr. Chen said my cholesterol is a bit high. I need to cut back on red meat."
+        },
+        {
+          "role": "assistant",
+          "content": "That's manageable with some dietary changes. Want me to help find heart-healthy meal ideas?"
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-05T10:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I started taking fish oil supplements. Dr. Chen recommended 1000mg daily."
+        },
+        {
+          "role": "assistant",
+          "content": "Fish oil at 1000mg daily is a common recommendation. Make sure to take it with food for better absorption."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-28T11:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My allergies are acting up. I take cetirizine for that."
+        },
+        {
+          "role": "assistant",
+          "content": "Cetirizine should help with the seasonal symptoms. Hope you feel better."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-15T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm filling out a medical form. What's my blood type?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "doctor_name",
+      "type": "entity",
+      "value": "Dr. Chen",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "Dr. Chen",
+          "as_of": "2026-01-10T09:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "cholesterol_status",
+      "type": "explicit",
+      "value": "high",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "high",
+          "as_of": "2026-01-18T14:00:00Z",
+          "source_session": 2
+        }
+      ]
+    },
+    {
+      "id": "supplement",
+      "type": "explicit",
+      "value": "fish oil 1000mg daily",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "fish oil 1000mg daily",
+          "as_of": "2026-02-05T10:30:00Z",
+          "source_session": 3
+        }
+      ]
+    },
+    {
+      "id": "allergy_med",
+      "type": "explicit",
+      "value": "cetirizine",
+      "introduced_in": 4,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "cetirizine",
+          "as_of": "2026-02-28T11:00:00Z",
+          "source_session": 4
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What's my blood type?",
+    "required_capabilities": [
+      "retrieval",
+      "abstention"
+    ],
+    "should_abstain": true
+  },
+  "ground_truth": {
+    "current_value": null,
+    "value_history": [],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "abstention",
+      "accept_patterns": [
+        "don't have",
+        "haven't mentioned",
+        "no record",
+        "not sure",
+        "don't know",
+        "never shared"
+      ]
+    }
+  },
+  "failure_modes": [
+    "hallucination",
+    "false_confidence"
+  ],
+  "interference": [
+    {
+      "type": "medical_context",
+      "description": "Multiple medical facts in context (cholesterol, supplements, allergies) might tempt the system to fabricate a blood type answer"
+    }
+  ]
+}

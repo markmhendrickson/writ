@@ -1,0 +1,115 @@
+{
+  "scenario_id": "forgetting-002-session-scoped-preference",
+  "version": "1.0.0",
+  "category": "forgetting",
+  "description": "User requests a formal tone for one conversation only, alongside durable personal facts. Tests whether session-scoped preferences correctly expire and do not leak into subsequent sessions.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My name is Priya Sharma. I'm a product manager at TechFlow." },
+        { "role": "assistant", "content": "Nice to meet you, Priya. Noted that you're a product manager at TechFlow." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-05T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "For this conversation only, please use a formal tone. I'm drafting executive communications and need to match that register." },
+        { "role": "assistant", "content": "Understood. I shall maintain a formal tone throughout this conversation to support your executive communications drafting." },
+        { "role": "user", "content": "Draft a message to the VP of Engineering about the Q1 roadmap delay." },
+        { "role": "assistant", "content": "Dear Vice President of Engineering,\n\nI am writing to inform you of an adjustment to our Q1 product roadmap timeline..." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-08T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Hey, can you help me brainstorm some fun team-building ideas?" },
+        { "role": "assistant", "content": "Sure! Here are some ideas for team-building activities..." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-15T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I like how casual our chats usually are. Remind me, do you have any standing instructions from me about tone or style?" },
+        { "role": "assistant", "content": "No standing tone or style instructions. Our conversations default to a casual, friendly tone." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What do you know about me, and are there any active instructions you're following?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "name",
+      "type": "explicit",
+      "value": "Priya Sharma",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Priya Sharma", "as_of": "2026-02-01T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "role",
+      "type": "explicit",
+      "value": "product manager at TechFlow",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "product manager at TechFlow", "as_of": "2026-02-01T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "formal_tone_instruction",
+      "type": "non_memory",
+      "value": "use formal tone",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": false,
+      "scope": "session",
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What do you know about me, and are there any active instructions you're following?",
+    "required_capabilities": ["retrieval", "selective_forgetting"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": { "name": "Priya Sharma", "role": "product manager at TechFlow" },
+    "value_history": [
+      { "value": { "name": "Priya Sharma", "role": "product manager at TechFlow" }, "as_of": "2026-02-01T10:00:00Z", "source_session": 1 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Priya Sharma", "product manager", "TechFlow"],
+      "forbidden_elements": ["formal tone", "formal", "executive"]
+    }
+  },
+  "failure_modes": ["over_retention", "scope_leak", "missing_memory"],
+  "interference": [
+    {
+      "type": "scope_bleed",
+      "description": "The session-scoped formal tone instruction must not persist. Systems that store all user instructions indiscriminately will incorrectly report an active tone preference."
+    }
+  ]
+}

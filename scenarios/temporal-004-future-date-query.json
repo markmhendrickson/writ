@@ -1,0 +1,92 @@
+{
+  "scenario_id": "temporal-004-future-date-query",
+  "version": "1.0.0",
+  "category": "temporal",
+  "description": "User's salary changes over time. Probe asks what their salary will be at a future date. System should return the current known value without speculating about future changes.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-15T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I started my new job. My salary is $95,000." },
+        { "role": "assistant", "content": "Congratulations! Noted — $95,000 salary." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-04-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Got a raise this quarter. Salary is now $102,000." },
+        { "role": "assistant", "content": "Nice, updated to $102,000." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-06-15T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Promoted to senior. Salary bumped to $120,000 effective immediately." },
+        { "role": "assistant", "content": "Updated — $120,000 as of today." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-07-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Chatting about unrelated stuff. How's the weather?" },
+        { "role": "assistant", "content": "I don't have live weather data, but I can help with other things!" }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-08-01T08:00:00Z",
+      "messages": [
+        { "role": "user", "content": "For my December budget planning — what will my salary be in December 2026?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "salary",
+      "type": "mutable",
+      "value": 120000,
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": 95000, "as_of": "2026-01-15T09:00:00Z", "source_session": 1 },
+        { "value": 102000, "as_of": "2026-04-01T10:00:00Z", "source_session": 2 },
+        { "value": 120000, "as_of": "2026-06-15T14:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What will my salary be in December 2026?",
+    "required_capabilities": ["retrieval", "temporal_replay"],
+    "temporal_query": { "as_of": "2026-12-01T00:00:00Z", "expect_current": true },
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": 120000,
+    "value_history": [
+      { "value": 95000, "as_of": "2026-01-15T09:00:00Z", "source_session": 1 },
+      { "value": 102000, "as_of": "2026-04-01T10:00:00Z", "source_session": 2 },
+      { "value": 120000, "as_of": "2026-06-15T14:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "exact", "note": "Must return current value $120,000 without speculating about future raises" }
+  },
+  "failure_modes": ["hallucinated_future_value", "stale_memory"],
+  "interference": [
+    {
+      "type": "noise_session",
+      "session_id": 4,
+      "description": "Unrelated chit-chat session between last salary update and probe"
+    }
+  ]
+}

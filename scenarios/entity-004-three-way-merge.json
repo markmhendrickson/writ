@@ -1,0 +1,151 @@
+{
+  "scenario_id": "entity-004-three-way-merge",
+  "version": "1.0.0",
+  "category": "entity",
+  "description": "User mentions 'Dr. Kim', 'Prof. Kim', and 'Sarah Kim' in separate sessions. Eventually reveals all three are the same person. Tests whether the system can merge three entity references into one without losing any attributes.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-08T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I have a check-up with Dr. Kim next Monday. She's my GP." },
+        { "role": "assistant", "content": "Noted -- appointment with Dr. Kim, your GP, next Monday." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-18T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm auditing a biology class this semester. The professor is Prof. Kim -- she's brilliant, wrote a textbook on immunology." },
+        { "role": "assistant", "content": "Sounds like a great class. Prof. Kim, immunology textbook author -- I'll note that." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-01T19:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I ran into Sarah Kim at the grocery store. She's in my running club. We're doing a 10K together next month." },
+        { "role": "assistant", "content": "Fun! Sarah Kim from your running club, 10K next month. I'll remember that." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-15T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Something wild: I just realized Dr. Kim, Prof. Kim, and Sarah Kim from my running club are all the same person. Her full name is Dr. Sarah Kim -- she's a physician who also teaches biology at the university part-time." },
+        { "role": "assistant", "content": "What a small world! Dr. Sarah Kim is your GP, biology professor, and running club friend all in one." },
+        { "role": "user", "content": "Yeah, she's incredibly accomplished. I feel like I should have connected the dots sooner." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-22T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My next appointment with Dr. Kim is in two weeks. Also, when is that 10K race?" },
+        { "role": "assistant", "content": "Your next GP appointment with Dr. Sarah Kim is in two weeks. The 10K with her is next month -- you mentioned it in early February." }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-01T15:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Tell me everything you know about Dr. Sarah Kim." }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "dr_kim_gp",
+      "type": "entity",
+      "value": { "name": "Dr. Kim", "role": "GP (general practitioner)", "relationship": "doctor" },
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "name": "Dr. Kim", "role": "GP" }, "as_of": "2026-01-08T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "prof_kim",
+      "type": "entity",
+      "value": { "name": "Prof. Kim", "role": "biology professor", "achievement": "immunology textbook author" },
+      "introduced_in": 2,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "name": "Prof. Kim", "role": "biology professor", "achievement": "immunology textbook author" }, "as_of": "2026-01-18T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "sarah_kim_runner",
+      "type": "entity",
+      "value": { "name": "Sarah Kim", "activity": "running club", "upcoming_event": "10K race" },
+      "introduced_in": 3,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "name": "Sarah Kim", "activity": "running club", "upcoming_event": "10K race" }, "as_of": "2026-02-01T19:00:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "kim_three_way_merge",
+      "type": "entity",
+      "value": {
+        "name": "Dr. Sarah Kim",
+        "roles": ["GP (general practitioner)", "biology professor (part-time)", "running club member"],
+        "achievements": ["immunology textbook author"],
+        "relationship": "doctor, professor, friend"
+      },
+      "introduced_in": 4,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Tell me everything you know about Dr. Sarah Kim.",
+    "required_capabilities": ["retrieval", "entity_resolution", "multi_hop"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": {
+      "name": "Dr. Sarah Kim",
+      "roles": ["GP", "biology professor", "running club member"],
+      "achievements": ["immunology textbook author"],
+      "upcoming": "10K race",
+      "relationship_to_user": "doctor, professor, friend"
+    },
+    "value_history": [
+      { "value": { "name": "Dr. Kim", "role": "GP" }, "as_of": "2026-01-08T10:00:00Z", "source_session": 1 },
+      { "value": { "name": "Prof. Kim", "role": "biology professor" }, "as_of": "2026-01-18T14:00:00Z", "source_session": 2 },
+      { "value": { "name": "Sarah Kim", "activity": "running club" }, "as_of": "2026-02-01T19:00:00Z", "source_session": 3 },
+      { "value": { "name": "Dr. Sarah Kim", "merged_entity": true }, "as_of": "2026-02-15T11:00:00Z", "source_session": 4 }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "semantic", "keywords": ["GP", "biology professor", "running club", "immunology textbook", "10K"] }
+  },
+  "failure_modes": ["incomplete_merge", "attribute_loss", "entity_duplication"],
+  "interference": [
+    {
+      "type": "partial_merge",
+      "description": "System might merge two of the three references but miss the third, producing an incomplete entity."
+    },
+    {
+      "type": "premature_conflation",
+      "description": "Before session 4, all three Kims should be tracked as separate entities. System must not merge them prematurely based on shared surname alone."
+    },
+    {
+      "type": "attribute_loss",
+      "description": "The 10K race and immunology textbook are attached to different pre-merge identities. Both must survive the merge."
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "scenario_id": "drift-002-salary-change",
+  "version": "1.0.0",
+  "category": "drift",
+  "description": "User's salary changes across multiple job transitions and raises. Tests whether the system tracks numerical value drift and preserves compensation history.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2025-11-05T09:30:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm trying to budget better. My salary is $85,000 a year at my current job." },
+        { "role": "assistant", "content": "That's a good starting point for budgeting. With $85,000 annual salary, your monthly gross is about $7,083. Want me to help set up a budget?" }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-20T14:15:00Z",
+      "messages": [
+        { "role": "user", "content": "Got my annual review. They bumped me to $92,000 starting this pay period." },
+        { "role": "assistant", "content": "Nice raise! That's about an 8% increase from $85,000. Your new monthly gross is roughly $7,667." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-04-02T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I took a new position at a different company. My base is $110,000 now, plus a $10,000 signing bonus." },
+        { "role": "assistant", "content": "Congrats on the move! $110,000 base is a solid jump. The signing bonus is a nice perk too." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-06-18T16:45:00Z",
+      "messages": [
+        { "role": "user", "content": "They adjusted my comp after the probation period. I'm at $115,000 base now and they added a $5,000 annual bonus target." },
+        { "role": "assistant", "content": "So your total comp target is $120,000 annually with the bonus. That's a solid improvement." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-08-30T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm negotiating a freelance gig on the side. Can you remind me how my income has changed this past year so I can figure out my tax situation?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "base_salary",
+      "type": "mutable",
+      "value": "$115,000",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "$85,000", "as_of": "2025-11-05T09:30:00Z", "source_session": 1 },
+        { "value": "$92,000", "as_of": "2026-01-20T14:15:00Z", "source_session": 2 },
+        { "value": "$110,000", "as_of": "2026-04-02T11:00:00Z", "source_session": 3 },
+        { "value": "$115,000", "as_of": "2026-06-18T16:45:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "bonus_target",
+      "type": "mutable",
+      "value": "$5,000",
+      "introduced_in": 4,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "$5,000", "as_of": "2026-06-18T16:45:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "signing_bonus",
+      "type": "mutable",
+      "value": "$10,000",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "$10,000", "as_of": "2026-04-02T11:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "Can you remind me how my income has changed this past year so I can figure out my tax situation?",
+    "required_capabilities": ["retrieval", "update_tracking", "history_preservation"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "$115,000 base + $5,000 bonus target",
+    "value_history": [
+      { "value": "$85,000", "as_of": "2025-11-05T09:30:00Z", "source_session": 1 },
+      { "value": "$92,000", "as_of": "2026-01-20T14:15:00Z", "source_session": 2 },
+      { "value": "$110,000", "as_of": "2026-04-02T11:00:00Z", "source_session": 3 },
+      { "value": "$115,000", "as_of": "2026-06-18T16:45:00Z", "source_session": 4 }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["$85,000", "$92,000", "$110,000", "$115,000", "$10,000 signing bonus"]
+    }
+  },
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory", "numerical_confusion"],
+  "interference": [
+    {
+      "type": "similar_numerical_values",
+      "description": "Multiple dollar amounts across sessions could be confused (base vs bonus vs signing bonus)"
+    }
+  ]
+}

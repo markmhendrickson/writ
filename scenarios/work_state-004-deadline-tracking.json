@@ -1,0 +1,136 @@
+{
+  "scenario_id": "work_state-004-deadline-tracking",
+  "version": "1.0.0",
+  "category": "work_state",
+  "description": "User sets and updates deadlines for project tasks across multiple sessions. Some deadlines are pushed back, one is moved earlier. Probe asks for current deadlines.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-12T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Here are the deadlines for the Q1 deliverables: API redesign due February 15th, mobile app update due March 1st, and security audit due March 15th." },
+        { "role": "assistant", "content": "Three Q1 deadlines noted: API redesign Feb 15, mobile app Mar 1, security audit Mar 15." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-28T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "The API redesign is more complex than expected. Pushing the deadline to March 1st. The mobile app update moves to March 15th as a result." },
+        { "role": "assistant", "content": "Updated: API redesign now March 1st, mobile app now March 15th." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-10T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Leadership wants the security audit done sooner. Move it up to February 28th. They also added a new deliverable: compliance report due March 30th." },
+        { "role": "assistant", "content": "Security audit moved to Feb 28. New compliance report due March 30." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-20T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Good news, the security audit is done as of today. Ahead of the Feb 28 deadline." },
+        { "role": "assistant", "content": "Great, security audit completed early. One down." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-25T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "The mobile app deadline needs to move again. Push it to March 22nd. The team needs more time for testing." },
+        { "role": "assistant", "content": "Mobile app update now due March 22nd." }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-01T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to update my project tracker. What are the current deadlines and statuses for all Q1 deliverables?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "deadline_api_redesign",
+      "type": "work_state",
+      "value": "due March 1, in progress",
+      "introduced_in": 1,
+      "updated_in": 2,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "due February 15", "as_of": "2026-01-12T09:00:00Z", "source_session": 1 },
+        { "value": "due March 1", "as_of": "2026-01-28T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "deadline_mobile_app",
+      "type": "work_state",
+      "value": "due March 22, in progress",
+      "introduced_in": 1,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "due March 1", "as_of": "2026-01-12T09:00:00Z", "source_session": 1 },
+        { "value": "due March 15", "as_of": "2026-01-28T14:00:00Z", "source_session": 2 },
+        { "value": "due March 22", "as_of": "2026-02-25T11:00:00Z", "source_session": 5 }
+      ]
+    },
+    {
+      "id": "deadline_security_audit",
+      "type": "work_state",
+      "value": "completed February 20",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "due March 15", "as_of": "2026-01-12T09:00:00Z", "source_session": 1 },
+        { "value": "due February 28", "as_of": "2026-02-10T10:00:00Z", "source_session": 3 },
+        { "value": "completed February 20", "as_of": "2026-02-20T16:00:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "deadline_compliance_report",
+      "type": "work_state",
+      "value": "due March 30, in progress",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "due March 30", "as_of": "2026-02-10T10:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "What are the current deadlines and statuses for all Q1 deliverables?",
+    "required_capabilities": ["retrieval", "work_state_tracking", "deadline_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "API redesign: due March 1 (in progress), Mobile app: due March 22 (in progress), Security audit: completed Feb 20, Compliance report: due March 30 (in progress)",
+    "value_history": [],
+    "provenance": {
+      "source_session": 5,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["API redesign: March 1", "mobile app: March 22", "security audit: completed", "compliance report: March 30"]
+    }
+  },
+  "failure_modes": ["stale_deadline", "wrong_date", "missing_deliverable", "wrong_status"],
+  "interference": [
+    {
+      "type": "superseded_deadlines",
+      "description": "Multiple previous deadline values for the same tasks could cause confusion about which date is current"
+    }
+  ]
+}

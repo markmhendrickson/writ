@@ -99,7 +99,9 @@
       "source_session": 1,
       "source_message_index": 0,
       "agent_or_user": "user"
-    }
+    },
+    "eval_rubric": { "method": "exact" }
   },
-  "failure_modes": ["provenance_loss", "missing_memory"]
+  "failure_modes": ["provenance_loss", "missing_memory"],
+  "interference": []
 }

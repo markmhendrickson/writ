@@ -1,0 +1,100 @@
+{
+  "scenario_id": "temporal-002-multi-fact",
+  "version": "1.0.0",
+  "category": "temporal",
+  "description": "Two independent facts (employer and city) change at different times. Probe asks for both values as of a specific date that falls between their respective updates.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-05T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I work at Acme Corp and I live in Denver, CO." },
+        { "role": "assistant", "content": "Got it — Acme Corp, Denver, CO." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I just accepted an offer at Globex Industries. Starting next Monday." },
+        { "role": "assistant", "content": "Congrats! Noted — you're moving to Globex Industries." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-04-10T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "We relocated for the job. I'm in Austin, TX now." },
+        { "role": "assistant", "content": "Updated — Austin, TX." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-06-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Actually I left Globex. I'm freelancing now." },
+        { "role": "assistant", "content": "Noted — you're freelancing." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-07-15T08:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to update my tax filing. Where was I working and living in March 2026?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "employer",
+      "type": "mutable",
+      "value": "freelancing",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Acme Corp", "as_of": "2026-01-05T09:00:00Z", "source_session": 1 },
+        { "value": "Globex Industries", "as_of": "2026-02-20T14:00:00Z", "source_session": 2 },
+        { "value": "freelancing", "as_of": "2026-06-01T11:00:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "city",
+      "type": "mutable",
+      "value": "Austin, TX",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Denver, CO", "as_of": "2026-01-05T09:00:00Z", "source_session": 1 },
+        { "value": "Austin, TX", "as_of": "2026-04-10T10:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "Where was I working and living in March 2026?",
+    "required_capabilities": ["retrieval", "temporal_replay"],
+    "temporal_query": { "as_of": "2026-03-15T00:00:00Z", "expect_current": false },
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": { "employer": "Globex Industries", "city": "Denver, CO" },
+    "value_history": [
+      { "fact": "employer", "value": "Acme Corp", "as_of": "2026-01-05T09:00:00Z", "source_session": 1 },
+      { "fact": "employer", "value": "Globex Industries", "as_of": "2026-02-20T14:00:00Z", "source_session": 2 },
+      { "fact": "city", "value": "Denver, CO", "as_of": "2026-01-05T09:00:00Z", "source_session": 1 },
+      { "fact": "city", "value": "Austin, TX", "as_of": "2026-04-10T10:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 2,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "multi_field_exact", "fields": ["employer", "city"] }
+  },
+  "failure_modes": ["stale_memory", "temporal_conflation"],
+  "interference": []
+}

@@ -1,0 +1,100 @@
+{
+  "scenario_id": "update-002-rapid-corrections",
+  "version": "1.0.0",
+  "category": "update",
+  "description": "User corrects their phone number three times within a single session, simulating rapid-fire edits. Tests whether the system tracks only the final value and does not conflate intermediate corrections.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to update my contact info. My phone number is 555-1000." },
+        { "role": "assistant", "content": "Saved your phone number as 555-1000." },
+        { "role": "user", "content": "Wait, I mistyped. It's 555-1001." },
+        { "role": "assistant", "content": "Updated to 555-1001." },
+        { "role": "user", "content": "Ugh, sorry, one more correction. The number is 555-1010. That's the right one." },
+        { "role": "assistant", "content": "Got it, updated your phone number to 555-1010." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-03T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My email is dana@example.com." },
+        { "role": "assistant", "content": "Noted, your email is dana@example.com." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-10T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you help me fill out a form? I need my phone number." },
+        { "role": "assistant", "content": "Sure. Your phone number on file is 555-1010." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-20T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What phone number do you have for me?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "phone_number",
+      "type": "mutable",
+      "value": "555-1010",
+      "introduced_in": 1,
+      "updated_in": 1,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "555-1000", "as_of": "2026-02-01T10:00:00Z", "source_session": 1 },
+        { "value": "555-1001", "as_of": "2026-02-01T10:01:00Z", "source_session": 1 },
+        { "value": "555-1010", "as_of": "2026-02-01T10:02:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "email",
+      "type": "explicit",
+      "value": "dana@example.com",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "dana@example.com", "as_of": "2026-02-03T09:00:00Z", "source_session": 2 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 4,
+    "prompt": "What phone number do you have for me?",
+    "required_capabilities": ["retrieval", "update_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "555-1010",
+    "value_history": [
+      { "value": "555-1000", "as_of": "2026-02-01T10:00:00Z", "source_session": 1 },
+      { "value": "555-1001", "as_of": "2026-02-01T10:01:00Z", "source_session": 1 },
+      { "value": "555-1010", "as_of": "2026-02-01T10:02:00Z", "source_session": 1 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 4,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
+    }
+  },
+  "failure_modes": ["stale_memory", "intermediate_value_returned", "silent_drift"],
+  "interference": [
+    {
+      "type": "same_session_noise",
+      "description": "Multiple corrections in rapid succession within one session may cause the system to latch onto an intermediate value."
+    }
+  ]
+}

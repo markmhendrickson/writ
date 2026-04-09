@@ -1,0 +1,161 @@
+{
+  "scenario_id": "abstention-003-out-of-scope",
+  "version": "1.0.0",
+  "category": "abstention",
+  "description": "User asks a general knowledge question (capital of France) that is factual but not a memory recall task. System should recognize this is not in personal memory scope and abstain from claiming to remember it.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-05T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm planning a Europe trip this summer. Thinking about France, Italy, and maybe Spain."
+        },
+        {
+          "role": "assistant",
+          "content": "Those are great choices. Do you have dates in mind or a rough budget?"
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-15T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'll be there for two weeks starting July 10th. Budget is around $4,000 not including flights."
+        },
+        {
+          "role": "assistant",
+          "content": "$4,000 for two weeks in Europe is doable with some planning. That's about $285 per day."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-01T11:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I booked a hotel in Rome for the first three nights. It's near the Colosseum."
+        },
+        {
+          "role": "assistant",
+          "content": "Great location in Rome. The Colosseum area is central and well-connected."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-20T09:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "After Rome I'm taking the train to Barcelona. Found a hostel in the Gothic Quarter."
+        },
+        {
+          "role": "assistant",
+          "content": "The Gothic Quarter is one of the best areas to stay in Barcelona. Train from Rome to Barcelona is a long ride though — did you check flight prices?"
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-05T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Quick question — what's the capital of France?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "trip_destinations",
+      "type": "explicit",
+      "value": "France, Italy, Spain",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "France, Italy, Spain",
+          "as_of": "2026-01-05T10:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "trip_budget",
+      "type": "explicit",
+      "value": "$4,000",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "$4,000",
+          "as_of": "2026-01-15T14:00:00Z",
+          "source_session": 2
+        }
+      ]
+    },
+    {
+      "id": "rome_hotel",
+      "type": "explicit",
+      "value": "near Colosseum, 3 nights",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "near Colosseum, 3 nights",
+          "as_of": "2026-02-01T11:00:00Z",
+          "source_session": 3
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What's the capital of France?",
+    "required_capabilities": [
+      "abstention",
+      "scope_recognition"
+    ],
+    "should_abstain": true
+  },
+  "ground_truth": {
+    "current_value": null,
+    "value_history": [],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "abstention",
+      "accept_patterns": [
+        "general knowledge",
+        "not something I stored",
+        "not from our conversations",
+        "not a personal memory"
+      ]
+    }
+  },
+  "failure_modes": [
+    "scope_confusion",
+    "false_memory_claim"
+  ],
+  "interference": [
+    {
+      "type": "topical_overlap",
+      "description": "France was discussed in the trip planning context, which might tempt the system to claim it 'remembers' the capital from conversation"
+    }
+  ]
+}

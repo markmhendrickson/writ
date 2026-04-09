@@ -79,7 +79,13 @@
       "source_session": 1,
       "source_message_index": 0,
       "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Alex Chen", "architect"],
+      "forbidden_elements": ["bullet points", "bullet point"]
     }
   },
-  "failure_modes": ["over_retention", "missing_memory"]
+  "failure_modes": ["over_retention", "missing_memory"],
+  "interference": []
 }

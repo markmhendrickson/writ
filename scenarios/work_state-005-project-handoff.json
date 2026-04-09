@@ -1,0 +1,166 @@
+{
+  "scenario_id": "work_state-005-project-handoff",
+  "version": "1.0.0",
+  "category": "work_state",
+  "description": "User assigns and reassigns tasks between team members over multiple sessions. Probe asks who is currently responsible for each task.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-08T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Team assignments for the product launch: Sarah handles marketing materials, Dev handles the landing page, and I'm doing the email campaign." },
+        { "role": "assistant", "content": "Got it. Sarah on marketing materials, Dev on landing page, you on email campaign." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Sarah is going on leave next week. Dev is taking over the marketing materials from her in addition to the landing page." },
+        { "role": "assistant", "content": "Dev now handles both marketing materials and landing page. Sarah is off the project." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-03T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Dev is overwhelmed. We hired a contractor named Priya. She's taking the landing page from Dev so he can focus on marketing materials." },
+        { "role": "assistant", "content": "Priya takes the landing page, Dev keeps marketing materials." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-15T11:30:00Z",
+      "messages": [
+        { "role": "user", "content": "I finished the email campaign. Now I'm picking up a new task: the press release. Also, Sarah is back from leave but she's joining a different project, not ours." },
+        { "role": "assistant", "content": "Email campaign done. You're on the press release now. Sarah not returning to this project." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-20T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Dev finished the marketing materials today. He's now free to help Priya with landing page testing." },
+        { "role": "assistant", "content": "Marketing materials complete. Dev joining Priya on landing page testing." }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-02-28T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to update the project tracker for the status meeting. Who is currently assigned to what, and what's done?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "task_marketing_materials",
+      "type": "work_state",
+      "value": "completed by Dev",
+      "introduced_in": 1,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "assigned to Sarah", "as_of": "2026-01-08T09:00:00Z", "source_session": 1 },
+        { "value": "reassigned to Dev", "as_of": "2026-01-20T14:00:00Z", "source_session": 2 },
+        { "value": "completed by Dev", "as_of": "2026-02-20T16:00:00Z", "source_session": 5 }
+      ]
+    },
+    {
+      "id": "task_landing_page",
+      "type": "work_state",
+      "value": "assigned to Priya and Dev (testing)",
+      "introduced_in": 1,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "assigned to Dev", "as_of": "2026-01-08T09:00:00Z", "source_session": 1 },
+        { "value": "reassigned to Priya", "as_of": "2026-02-03T10:00:00Z", "source_session": 3 },
+        { "value": "assigned to Priya and Dev (testing)", "as_of": "2026-02-20T16:00:00Z", "source_session": 5 }
+      ]
+    },
+    {
+      "id": "task_email_campaign",
+      "type": "work_state",
+      "value": "completed by user",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "assigned to user", "as_of": "2026-01-08T09:00:00Z", "source_session": 1 },
+        { "value": "completed by user", "as_of": "2026-02-15T11:30:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "task_press_release",
+      "type": "work_state",
+      "value": "assigned to user",
+      "introduced_in": 4,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "assigned to user", "as_of": "2026-02-15T11:30:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "team_member_sarah",
+      "type": "entity",
+      "value": "Sarah, on different project",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Sarah, on marketing materials", "as_of": "2026-01-08T09:00:00Z", "source_session": 1 },
+        { "value": "Sarah, on leave", "as_of": "2026-01-20T14:00:00Z", "source_session": 2 },
+        { "value": "Sarah, on different project", "as_of": "2026-02-15T11:30:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "team_member_priya",
+      "type": "entity",
+      "value": "Priya, contractor, landing page",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Priya, contractor, landing page", "as_of": "2026-02-03T10:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Who is currently assigned to what, and what's done?",
+    "required_capabilities": ["retrieval", "work_state_tracking", "assignment_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Marketing materials: completed (Dev). Landing page: Priya and Dev (testing). Email campaign: completed (user). Press release: user (in progress).",
+    "value_history": [],
+    "provenance": {
+      "source_session": 5,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["marketing materials: completed", "landing page: Priya", "email campaign: completed", "press release: user"]
+    }
+  },
+  "failure_modes": ["stale_assignment", "wrong_person", "phantom_assignment", "missing_handoff"],
+  "interference": [
+    {
+      "type": "former_assignee",
+      "description": "Sarah was originally on marketing materials but left; system might still attribute it to her"
+    },
+    {
+      "type": "multiple_reassignments",
+      "description": "Landing page was reassigned twice (Dev -> Priya -> Priya+Dev), creating confusion about current owner"
+    }
+  ]
+}

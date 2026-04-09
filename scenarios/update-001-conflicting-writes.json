@@ -81,7 +81,11 @@
       "source_session": 3,
       "source_message_index": 0,
       "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
     }
   },
-  "failure_modes": ["stale_memory", "silent_drift", "missing_memory"]
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory"],
+  "interference": []
 }

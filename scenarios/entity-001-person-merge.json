@@ -89,7 +89,14 @@
       "source_session": 3,
       "source_message_index": 0,
       "agent_or_user": "user"
-    }
+    },
+    "eval_rubric": { "method": "semantic", "keywords": ["dermatologist", "college friend", "Dr. Sarah Kim"] }
   },
-  "failure_modes": ["missing_memory", "incorrect_generalization"]
+  "failure_modes": ["missing_memory", "incorrect_generalization"],
+  "interference": [
+    {
+      "type": "entity_ambiguity",
+      "description": "Before the merge revelation in session 3, 'Dr. Kim' and 'Sarah Kim' appear to be distinct people. System must not prematurely conflate them."
+    }
+  ]
 }

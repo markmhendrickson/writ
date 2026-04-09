@@ -1,0 +1,196 @@
+{
+  "scenario_id": "constraint-005-budget",
+  "version": "1.0.0",
+  "category": "constraint",
+  "description": "User sets a hard budget constraint for gifts ($50 max). Tests whether the system respects the dollar ceiling when making gift recommendations.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-03-01T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I have a rule for myself: I never spend more than $50 on a gift. That's my hard limit, no exceptions."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted -- $50 is your maximum gift budget, no exceptions."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-08T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My coworker's birthday is coming up. She's into gardening. Any gift ideas?"
+        },
+        {
+          "role": "assistant",
+          "content": "How about a set of quality gardening gloves ($15-25) or a succulent arrangement ($20-35)?"
+        },
+        {
+          "role": "user",
+          "content": "The succulent arrangement is a great idea, thanks."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-15T11:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My sister's wedding anniversary is next month. I want to get her and her husband something nice."
+        },
+        {
+          "role": "assistant",
+          "content": "Within your $50 budget, you could get a nice photo frame, a custom cutting board, or a gift card to their favorite restaurant."
+        },
+        {
+          "role": "user",
+          "content": "The custom cutting board is a lovely idea."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-22T16:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My friend recommended this fancy candle set that costs $85. Tempting but I'll stick to my rule."
+        },
+        {
+          "role": "assistant",
+          "content": "Good call sticking to your budget. There are great candle sets under $50 if you want alternatives."
+        },
+        {
+          "role": "user",
+          "content": "Sure, send me some options under $50."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-29T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I heard my neighbor loves cooking. He's turning 40 next week."
+        },
+        {
+          "role": "assistant",
+          "content": "For a cooking enthusiast, you could consider a spice set ($25-40), a quality wooden spoon set ($15-30), or a cookbook by a popular chef ($20-35)."
+        },
+        {
+          "role": "user",
+          "content": "All great. I'll go with the spice set."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-04-05T13:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My best friend just got engaged! I really want to get them something special. What do you suggest?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "gift_budget",
+      "type": "latent",
+      "value": "maximum $50 per gift, no exceptions",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "$50 hard limit on gifts",
+          "as_of": "2026-03-01T10:00:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "Reinforced: declined $85 item, sticking to rule",
+          "as_of": "2026-03-22T16:00:00Z",
+          "source_session": 4
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "My best friend just got engaged! I really want to get them something special. What do you suggest?",
+    "required_capabilities": [
+      "retrieval",
+      "constraint_application"
+    ],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "gift recommendation at or under $50",
+    "value_history": [
+      {
+        "value": "$50 hard limit on gifts",
+        "as_of": "2026-03-01T10:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Reinforced by declining $85 item",
+        "as_of": "2026-03-22T16:00:00Z",
+        "source_session": 4
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "constraint",
+      "keywords": [
+        "under $50",
+        "$50 or less",
+        "within budget"
+      ]
+    },
+    "constraint_check": {
+      "must_contain": [
+        "$"
+      ],
+      "must_not_contain": [
+        "$51",
+        "$55",
+        "$60",
+        "$65",
+        "$70",
+        "$75",
+        "$80",
+        "$85",
+        "$90",
+        "$95",
+        "$100"
+      ]
+    }
+  },
+  "failure_modes": [
+    "constraint_violation",
+    "emotional_override"
+  ],
+  "interference": [
+    {
+      "type": "emotional_pressure",
+      "description": "The probe involves a best friend's engagement -- a high-emotion occasion. System must not override the hard budget constraint due to the sentimental context."
+    },
+    {
+      "type": "escalation_pattern",
+      "description": "Past sessions show gifts in the $15-40 range. The engagement context might tempt the system to suggest higher-end items that breach $50."
+    }
+  ]
+}

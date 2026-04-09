@@ -9,6 +9,8 @@ import type {
 } from "./types.js";
 import { evaluateScenario, aggregateScores } from "./evaluator.js";
 
+export const WRIT_VERSION = "0.2.0";
+
 export interface RunOptions {
   scenarios: Scenario[];
   adapter: MemoryAdapter;
@@ -56,6 +58,7 @@ export async function runBenchmark(
   const byMode = groupByMode(results);
 
   return {
+    writ_version: WRIT_VERSION,
     adapter_name: adapter.name,
     timestamp: new Date().toISOString(),
     scenarios_run: filtered.length,
@@ -72,7 +75,7 @@ function groupByCategory(
   const groups: Partial<Record<ScenarioCategory, ScenarioResult[]>> = {};
 
   for (const r of results) {
-    const cat = r.scenario_id.split("-")[0] as ScenarioCategory;
+    const cat = r.category;
     if (!groups[cat]) groups[cat] = [];
     groups[cat]!.push(r);
   }

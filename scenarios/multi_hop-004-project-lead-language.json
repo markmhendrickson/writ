@@ -1,0 +1,110 @@
+{
+  "scenario_id": "multi_hop-004-project-lead-language",
+  "version": "1.0.0",
+  "category": "multi_hop",
+  "description": "User mentions their project lead by name in one session and the lead's native language in another. Probe asks what language the project lead speaks, requiring linking both facts.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-20T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "We kicked off the new project today. Yuki is leading it — she's been at the company for five years." },
+        { "role": "assistant", "content": "Sounds like Yuki has a lot of experience to bring to the project. What's the project about?" }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-03T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "We're adding localization to the app. Carlos on the team speaks Spanish and Portuguese, so he's handling the Latin American strings." },
+        { "role": "assistant", "content": "That's great to have a native speaker on the localization work. Carlos covering Spanish and Portuguese is efficient." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-20T10:30:00Z",
+      "messages": [
+        { "role": "user", "content": "Yuki is handling the Japanese localization herself since she's a native speaker. She grew up in Osaka." },
+        { "role": "assistant", "content": "Nice, having Yuki do the Japanese strings directly should give you high-quality translations." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-08T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "We also need Mandarin support. I'm looking into hiring a contractor for that." },
+        { "role": "assistant", "content": "A contractor for Mandarin makes sense if nobody on the team covers it." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-15T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I want to check on the localization progress. Remind me, what language does my project lead speak natively?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "project_lead",
+      "type": "entity",
+      "value": "Yuki",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Yuki", "as_of": "2026-01-20T09:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "yuki_language",
+      "type": "explicit",
+      "value": "Japanese",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Japanese", "as_of": "2026-02-20T10:30:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "carlos_languages",
+      "type": "explicit",
+      "value": "Spanish and Portuguese",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Spanish and Portuguese", "as_of": "2026-02-03T14:00:00Z", "source_session": 2 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What language does my project lead speak natively?",
+    "required_capabilities": ["retrieval", "multi_hop"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Japanese",
+    "value_history": [
+      { "value": "Japanese", "as_of": "2026-02-20T10:30:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "exact" }
+  },
+  "failure_modes": ["missing_link", "entity_confusion", "wrong_language"],
+  "interference": [
+    {
+      "type": "competing_languages",
+      "description": "Carlos's languages (Spanish, Portuguese) and Mandarin mentioned for a contractor could be confused with Yuki's language"
+    }
+  ]
+}

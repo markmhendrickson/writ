@@ -1,0 +1,114 @@
+{
+  "scenario_id": "forgetting-003-retracted-fact",
+  "version": "1.0.0",
+  "category": "forgetting",
+  "description": "User shares a fact, then explicitly asks the system to forget it. Tests whether the system honours explicit retraction requests and does not surface retracted information in future sessions.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-20T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My name is Sam Torres. I work at a nonprofit called GreenFuture." },
+        { "role": "assistant", "content": "Hi Sam. Noted that you work at GreenFuture." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm thinking about applying to law school. I've been studying for the LSAT." },
+        { "role": "assistant", "content": "That's exciting. Good luck with the LSAT prep!" }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-15T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I decided not to apply to law school after all. Please forget that I ever mentioned it. I don't want it brought up again." },
+        { "role": "assistant", "content": "Understood. I've removed that from my memory. I won't bring it up." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-01T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm thinking about what to do next in my career. Any ideas based on what you know about me?" },
+        { "role": "assistant", "content": "Based on what I know, you work at GreenFuture, a nonprofit. Some directions could include..." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-20T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What do you know about my career plans and interests?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "name",
+      "type": "explicit",
+      "value": "Sam Torres",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Sam Torres", "as_of": "2026-01-20T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "employer",
+      "type": "explicit",
+      "value": "GreenFuture (nonprofit)",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "GreenFuture (nonprofit)", "as_of": "2026-01-20T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "law_school_interest",
+      "type": "mutable",
+      "value": "considering law school / LSAT",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": 3,
+      "should_persist": false,
+      "previous_values": [
+        { "value": "considering law school / LSAT", "as_of": "2026-02-01T11:00:00Z", "source_session": 2 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What do you know about my career plans and interests?",
+    "required_capabilities": ["retrieval", "selective_forgetting", "retraction"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": { "name": "Sam Torres", "employer": "GreenFuture (nonprofit)" },
+    "value_history": [
+      { "value": { "name": "Sam Torres", "employer": "GreenFuture (nonprofit)" }, "as_of": "2026-01-20T10:00:00Z", "source_session": 1 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Sam Torres", "GreenFuture"],
+      "forbidden_elements": ["law school", "LSAT", "law"]
+    }
+  },
+  "failure_modes": ["over_retention", "retraction_ignored", "missing_memory"],
+  "interference": [
+    {
+      "type": "retraction_leak",
+      "description": "The user explicitly retracted the law school fact. Systems that do not support retraction or soft-delete will surface it when asked about career plans, violating the user's explicit request."
+    }
+  ]
+}

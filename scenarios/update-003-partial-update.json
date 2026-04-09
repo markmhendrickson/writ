@@ -1,0 +1,105 @@
+{
+  "scenario_id": "update-003-partial-update",
+  "version": "1.0.0",
+  "category": "update",
+  "description": "User provides a full address, then later updates only the street while keeping city and zip the same. Tests whether the system applies a partial update without clobbering unchanged fields.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-03-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My address is 42 Elm Street, Portland, OR 97201." },
+        { "role": "assistant", "content": "Got it. Your address is 42 Elm Street, Portland, OR 97201." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-15T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I moved across town. My new address is 88 Oak Avenue. Still in Portland, same zip." },
+        { "role": "assistant", "content": "Updated your street to 88 Oak Avenue. Full address: 88 Oak Avenue, Portland, OR 97201." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-04-01T09:30:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you ship something to my address? Remind me what you have." },
+        { "role": "assistant", "content": "Your address on file is 88 Oak Avenue, Portland, OR 97201." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Oh, I also changed my apartment number. It's now Apt 3B. Street and city are the same." },
+        { "role": "assistant", "content": "Updated. Your address is 88 Oak Avenue, Apt 3B, Portland, OR 97201." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-05-10T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What's my full mailing address?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "address_street",
+      "type": "mutable",
+      "value": "88 Oak Avenue, Apt 3B",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "42 Elm Street", "as_of": "2026-03-01T10:00:00Z", "source_session": 1 },
+        { "value": "88 Oak Avenue", "as_of": "2026-03-15T11:00:00Z", "source_session": 2 },
+        { "value": "88 Oak Avenue, Apt 3B", "as_of": "2026-04-20T14:00:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "address_city",
+      "type": "explicit",
+      "value": "Portland, OR 97201",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Portland, OR 97201", "as_of": "2026-03-01T10:00:00Z", "source_session": 1 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What's my full mailing address?",
+    "required_capabilities": ["retrieval", "update_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "88 Oak Avenue, Apt 3B, Portland, OR 97201",
+    "value_history": [
+      { "value": "42 Elm Street, Portland, OR 97201", "as_of": "2026-03-01T10:00:00Z", "source_session": 1 },
+      { "value": "88 Oak Avenue, Portland, OR 97201", "as_of": "2026-03-15T11:00:00Z", "source_session": 2 },
+      { "value": "88 Oak Avenue, Apt 3B, Portland, OR 97201", "as_of": "2026-04-20T14:00:00Z", "source_session": 4 }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["88 Oak Avenue", "Apt 3B", "Portland", "OR", "97201"]
+    }
+  },
+  "failure_modes": ["field_clobbering", "stale_memory", "partial_loss"],
+  "interference": [
+    {
+      "type": "partial_overlap",
+      "description": "Partial updates may cause the system to discard unchanged fields (city, zip) if it treats each update as a full replacement."
+    }
+  ]
+}

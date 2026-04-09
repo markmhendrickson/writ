@@ -1,4 +1,4 @@
-import type { MemoryAdapter } from "./adapter.js";
+import type { MemoryAdapter, AdapterCapabilities } from "./adapter.js";
 import type {
   Scenario,
   ScenarioResult,
@@ -8,7 +8,9 @@ import type {
   AttributionLayer,
   AggregateScores,
   ProbeResult,
+  JudgeVerdict,
 } from "./types.js";
+import { judge } from "./judge.js";
 
 export async function evaluateScenario(
   scenario: Scenario,
@@ -26,17 +28,17 @@ export async function evaluateScenario(
   const probeResult = await adapter.probe(scenario.probe.prompt, {
     mode,
     oracle_state:
-      mode === "oracle_memory"
-        ? buildOracleState(scenario)
-        : undefined,
+      mode === "oracle_memory" ? buildOracleState(scenario) : undefined,
   });
 
-  const scores = await scoreResult(scenario, adapter, probeResult);
+  const capabilities = adapter.getCapabilities();
+  const scores = await scoreResult(scenario, adapter, probeResult, capabilities);
   const detectedFailures = detectFailures(scenario, scores, probeResult);
   const attribution = attributeFailure(scores, mode);
 
   return {
     scenario_id: scenario.scenario_id,
+    category: scenario.category,
     mode,
     probe_result: probeResult,
     scores,
@@ -48,48 +50,101 @@ export async function evaluateScenario(
 async function scoreResult(
   scenario: Scenario,
   adapter: MemoryAdapter,
-  result: ProbeResult
+  result: ProbeResult,
+  capabilities: AdapterCapabilities
 ): Promise<ScenarioScores> {
   const gt = scenario.ground_truth;
+  const rubric = gt.eval_rubric;
 
-  const recall_correct = checkRecall(result, gt.current_value);
+  let recall_correct: boolean;
+  let recall_score: number;
+
+  if (rubric?.method === "llm_judge" && rubric.rubric_prompt) {
+    const verdict = await judgeRecall(result, gt.current_value, rubric.rubric_prompt);
+    recall_correct = verdict.correct;
+    recall_score = verdict.partial_score;
+  } else if (rubric?.method === "structured" && rubric.required_elements) {
+    const { correct, score } = checkStructuredRecall(
+      result,
+      rubric.required_elements
+    );
+    recall_correct = correct;
+    recall_score = score;
+  } else {
+    recall_correct = checkRecall(result, gt.current_value);
+    recall_score = recall_correct ? 1.0 : 0.0;
+  }
 
   let update_fidelity: boolean | null = null;
   if (gt.value_history.length > 1) {
-    update_fidelity = checkUpdateFidelity(result, gt.current_value);
+    update_fidelity = checkUpdateFidelity(result, gt);
   }
 
   let drift_detected: boolean | null = null;
-  const primaryEvent = scenario.memory_events.find(
-    (e) => e.type === "mutable"
-  );
-  if (primaryEvent) {
-    const history = await adapter.getHistory(primaryEvent.id);
-    drift_detected = history !== null && history.values.length > 1;
+  if (!capabilities.supports_history) {
+    drift_detected = null;
+  } else {
+    const mutableEvent = scenario.memory_events.find(
+      (e) => e.type === "mutable"
+    );
+    if (mutableEvent) {
+      const history = await adapter.getHistory(mutableEvent.id);
+      drift_detected =
+        history !== null &&
+        history.values.length > 1 &&
+        matchesCurrentValue(history.current_value, gt.current_value);
+    }
   }
 
   let temporal_correct: boolean | null = null;
-  if (scenario.probe.temporal_query?.as_of) {
+  if (!capabilities.supports_temporal_replay) {
+    temporal_correct = null;
+  } else if (scenario.probe.temporal_query?.as_of) {
+    const targetTimestamp = scenario.probe.temporal_query.as_of;
     const asOfValue = await adapter.getStateAsOf(
       scenario.memory_events[0]!.id,
-      scenario.probe.temporal_query.as_of
+      targetTimestamp
     );
-    temporal_correct = asOfValue !== null;
+
+    if (asOfValue === null) {
+      temporal_correct = false;
+    } else {
+      const expectedEntry = findExpectedValueAsOf(
+        gt.value_history,
+        targetTimestamp
+      );
+      temporal_correct = expectedEntry
+        ? matchesCurrentValue(asOfValue, expectedEntry.value)
+        : asOfValue !== null;
+    }
   }
 
   let provenance_complete: boolean | null = null;
-  if (
+  if (!capabilities.supports_provenance) {
+    provenance_complete = null;
+  } else if (
     scenario.probe.required_capabilities.includes("provenance_tracing")
   ) {
     const prov = await adapter.getProvenance(scenario.memory_events[0]!.id);
-    provenance_complete = prov !== null && prov.chain.length > 0;
+    if (!prov || prov.chain.length === 0) {
+      provenance_complete = false;
+    } else {
+      provenance_complete =
+        prov.source_session === gt.provenance.source_session &&
+        prov.source_message_index === gt.provenance.source_message_index;
+    }
   }
 
   let constraint_respected: boolean | null = null;
   if (
     scenario.probe.required_capabilities.includes("constraint_application")
   ) {
-    constraint_respected = !result.abstained && recall_correct;
+    const check = gt.constraint_check;
+    if (check) {
+      constraint_respected = evaluateConstraint(result, check);
+    } else {
+      constraint_respected = !result.abstained && recall_correct;
+    }
   }
 
   let abstention_correct: boolean | null = null;
@@ -99,13 +154,11 @@ async function scoreResult(
     abstention_correct = !result.abstained;
   }
 
-  const hallucination_detected = checkHallucination(
-    result,
-    scenario
-  );
+  const hallucination_detected = checkHallucination(result, scenario);
 
   return {
     recall_correct,
+    recall_score,
     update_fidelity,
     drift_detected,
     temporal_correct,
@@ -119,17 +172,84 @@ async function scoreResult(
 function checkRecall(result: ProbeResult, expected: unknown): boolean {
   if (result.abstained) return false;
   const answer = result.answer.toLowerCase();
-  const expectedStr = String(expected).toLowerCase();
-  return answer.includes(expectedStr);
+
+  if (typeof expected === "string" || typeof expected === "number") {
+    return answer.includes(String(expected).toLowerCase());
+  }
+
+  if (Array.isArray(expected)) {
+    return expected.every((item) =>
+      answer.includes(String(item).toLowerCase())
+    );
+  }
+
+  if (typeof expected === "object" && expected !== null) {
+    return Object.values(expected).every((val) =>
+      answer.includes(String(val).toLowerCase())
+    );
+  }
+
+  return answer.includes(String(expected).toLowerCase());
+}
+
+function checkStructuredRecall(
+  result: ProbeResult,
+  requiredElements: string[]
+): { correct: boolean; score: number } {
+  if (result.abstained) return { correct: false, score: 0 };
+  const answer = result.answer.toLowerCase();
+  let matched = 0;
+  for (const element of requiredElements) {
+    if (answer.includes(element.toLowerCase())) {
+      matched++;
+    }
+  }
+  const score = requiredElements.length > 0 ? matched / requiredElements.length : 0;
+  return { correct: score >= 0.8, score };
+}
+
+async function judgeRecall(
+  result: ProbeResult,
+  expected: unknown,
+  rubricPrompt: string
+): Promise<JudgeVerdict> {
+  if (result.abstained) {
+    return { correct: false, partial_score: 0, reasoning: "Model abstained" };
+  }
+  return judge({
+    probe_answer: result.answer,
+    expected_value: expected,
+    rubric_prompt: rubricPrompt,
+  });
 }
 
 function checkUpdateFidelity(
   result: ProbeResult,
-  currentValue: unknown
+  gt: { current_value: unknown; value_history: { value: unknown }[] }
 ): boolean {
   if (result.abstained) return false;
   const answer = result.answer.toLowerCase();
-  return answer.includes(String(currentValue).toLowerCase());
+  const currentStr = String(gt.current_value).toLowerCase();
+
+  if (!answer.includes(currentStr)) return false;
+
+  if (gt.value_history.length >= 2) {
+    const staleValues = gt.value_history.slice(0, -1);
+    const mentionsStale = staleValues.some((entry) =>
+      answer.includes(String(entry.value).toLowerCase())
+    );
+    if (mentionsStale) {
+      const currentIdx = answer.indexOf(currentStr);
+      const lastStaleIdx = Math.max(
+        ...staleValues.map((e) =>
+          answer.lastIndexOf(String(e.value).toLowerCase())
+        )
+      );
+      if (lastStaleIdx > currentIdx) return false;
+    }
+  }
+
+  return true;
 }
 
 function checkHallucination(
@@ -143,11 +263,71 @@ function checkHallucination(
   for (const entry of scenario.ground_truth.value_history) {
     allValues.add(String(entry.value).toLowerCase());
   }
+  for (const event of scenario.memory_events) {
+    allValues.add(String(event.value).toLowerCase());
+    for (const pv of event.previous_values) {
+      allValues.add(String(pv.value).toLowerCase());
+    }
+  }
 
   const answer = result.answer.toLowerCase();
   const containsKnownValue = [...allValues].some((v) => answer.includes(v));
 
   return !containsKnownValue && answer.length > 0;
+}
+
+function evaluateConstraint(
+  result: ProbeResult,
+  check: { must_contain?: string[]; must_not_contain?: string[] }
+): boolean {
+  if (result.abstained) return false;
+  const answer = result.answer.toLowerCase();
+
+  if (check.must_contain) {
+    for (const term of check.must_contain) {
+      if (!answer.includes(term.toLowerCase())) return false;
+    }
+  }
+
+  if (check.must_not_contain) {
+    for (const term of check.must_not_contain) {
+      if (answer.includes(term.toLowerCase())) return false;
+    }
+  }
+
+  return true;
+}
+
+function findExpectedValueAsOf(
+  history: { value: unknown; as_of: string }[],
+  targetTimestamp: string
+): { value: unknown; as_of: string } | null {
+  const target = new Date(targetTimestamp).getTime();
+  let best: { value: unknown; as_of: string } | null = null;
+
+  for (const entry of history) {
+    const entryTime = new Date(entry.as_of).getTime();
+    if (entryTime <= target) {
+      if (!best || entryTime > new Date(best.as_of).getTime()) {
+        best = entry;
+      }
+    }
+  }
+  return best;
+}
+
+function matchesCurrentValue(actual: unknown, expected: unknown): boolean {
+  if (actual === expected) return true;
+
+  const actualStr = typeof actual === "object"
+    ? JSON.stringify(actual)
+    : String(actual);
+  const expectedStr = typeof expected === "object"
+    ? JSON.stringify(expected)
+    : String(expected);
+
+  return actualStr.toLowerCase().includes(expectedStr.toLowerCase()) ||
+    expectedStr.toLowerCase().includes(actualStr.toLowerCase());
 }
 
 function detectFailures(

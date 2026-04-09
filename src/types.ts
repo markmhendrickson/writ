@@ -14,7 +14,9 @@ export type ScenarioCategory =
   | "entity"
   | "forgetting"
   | "update"
-  | "multi_hop";
+  | "multi_hop"
+  | "abstention"
+  | "work_state";
 
 export type RequiredCapability =
   | "retrieval"
@@ -42,6 +44,27 @@ export type FailureMode =
 export type EvaluationMode = "no_memory" | "native_memory" | "oracle_memory";
 
 export type AttributionLayer = "state" | "retrieval" | "agent_policy";
+
+export type EvalMethod = "exact" | "structured" | "llm_judge";
+
+export interface EvalRubric {
+  method: EvalMethod;
+  required_elements?: string[];
+  rubric_prompt?: string;
+  partial_credit?: boolean;
+}
+
+export interface ConstraintCheck {
+  must_contain?: string[];
+  must_not_contain?: string[];
+  rubric_prompt?: string;
+}
+
+export interface Interference {
+  type: "near_duplicate" | "contradicting" | "low_salience" | "distractor";
+  session: number;
+  content: string;
+}
 
 export interface Message {
   role: "user" | "assistant";
@@ -94,6 +117,8 @@ export interface GroundTruth {
   current_value: unknown;
   value_history: ValueHistoryEntry[];
   provenance: ProvenanceInfo;
+  eval_rubric?: EvalRubric;
+  constraint_check?: ConstraintCheck;
 }
 
 export interface Scenario {
@@ -106,6 +131,7 @@ export interface Scenario {
   probe: Probe;
   ground_truth: GroundTruth;
   failure_modes: FailureMode[];
+  interference?: Interference[];
 }
 
 export interface ProbeOptions {
@@ -142,8 +168,15 @@ export interface ProvenanceChainLink {
   value: unknown;
 }
 
+export interface JudgeVerdict {
+  correct: boolean;
+  partial_score: number;
+  reasoning: string;
+}
+
 export interface ScenarioResult {
   scenario_id: string;
+  category: ScenarioCategory;
   mode: EvaluationMode;
   probe_result: ProbeResult;
   scores: ScenarioScores;
@@ -153,6 +186,7 @@ export interface ScenarioResult {
 
 export interface ScenarioScores {
   recall_correct: boolean;
+  recall_score: number;
   update_fidelity: boolean | null;
   drift_detected: boolean | null;
   temporal_correct: boolean | null;
@@ -163,6 +197,7 @@ export interface ScenarioScores {
 }
 
 export interface BenchmarkReport {
+  writ_version: string;
   adapter_name: string;
   timestamp: string;
   scenarios_run: number;

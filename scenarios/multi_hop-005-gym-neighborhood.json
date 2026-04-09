@@ -1,0 +1,110 @@
+{
+  "scenario_id": "multi_hop-005-gym-neighborhood",
+  "version": "1.0.0",
+  "category": "multi_hop",
+  "description": "User mentions their gym by name in one session and the gym's neighborhood in another. Probe asks what neighborhood the gym is in, requiring linking the gym identity to its location.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-06T07:30:00Z",
+      "messages": [
+        { "role": "user", "content": "I signed up for a new gym membership at FitLife. They have great early morning classes." },
+        { "role": "assistant", "content": "Nice, FitLife sounds solid. What kind of classes are you planning to take?" }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-18T12:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm also looking at yoga studios. There's one called Breathe Easy in Capitol Hill that looks good." },
+        { "role": "assistant", "content": "Capitol Hill has a great yoga scene. Breathe Easy is worth checking out." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-02T08:00:00Z",
+      "messages": [
+        { "role": "user", "content": "FitLife is in Belltown, which is a quick bus ride from my apartment. I love that it's near the waterfront." },
+        { "role": "assistant", "content": "Belltown is a great location, especially with the waterfront nearby for post-workout walks." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-20T17:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My friend recommended a CrossFit box in Fremont. I might try a drop-in class there." },
+        { "role": "assistant", "content": "Fremont has some good fitness spots. A drop-in class is a low-commitment way to try it." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm trying to plan my commute for tomorrow's early class. What neighborhood is my gym in?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "gym_identity",
+      "type": "entity",
+      "value": "FitLife",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "FitLife", "as_of": "2026-01-06T07:30:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "fitlife_neighborhood",
+      "type": "explicit",
+      "value": "Belltown",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Belltown", "as_of": "2026-02-02T08:00:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "yoga_studio",
+      "type": "entity",
+      "value": "Breathe Easy",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Breathe Easy", "as_of": "2026-01-18T12:00:00Z", "source_session": 2 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What neighborhood is my gym in?",
+    "required_capabilities": ["retrieval", "multi_hop"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Belltown",
+    "value_history": [
+      { "value": "Belltown", "as_of": "2026-02-02T08:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "exact" }
+  },
+  "failure_modes": ["missing_link", "entity_confusion", "wrong_neighborhood"],
+  "interference": [
+    {
+      "type": "competing_neighborhoods",
+      "description": "Capitol Hill (yoga studio) and Fremont (CrossFit) could be confused with Belltown (FitLife gym)"
+    }
+  ]
+}

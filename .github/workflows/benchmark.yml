@@ -1,0 +1,36 @@
+name: WRIT Benchmark CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+
+  benchmark-baseline:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npx tsx src/cli.ts --adapter baseline --modes native_memory --output-format both --output results
+      - uses: actions/upload-artifact@v4
+        with:
+          name: writ-results
+          path: results/

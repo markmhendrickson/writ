@@ -1,0 +1,92 @@
+{
+  "scenario_id": "update-004-revert-to-previous",
+  "version": "1.0.0",
+  "category": "update",
+  "description": "User updates their email, then asks to revert to the previous one. Tests whether the system can resolve a 'go back to my old X' instruction by recovering a prior value from history.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My email is jordan.lee@oldmail.com." },
+        { "role": "assistant", "content": "Noted, your email is jordan.lee@oldmail.com." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-05T13:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I switched email providers. Use jordan.lee@newmail.io from now on." },
+        { "role": "assistant", "content": "Updated your email to jordan.lee@newmail.io." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-20T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "The new email service has too many issues. Can you revert to my old email? The oldmail.com one." },
+        { "role": "assistant", "content": "Reverted your email back to jordan.lee@oldmail.com." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-10T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm filling out a form. What email should I use?" },
+        { "role": "assistant", "content": "Your email on file is jordan.lee@oldmail.com." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-01T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What email address do you have for me?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "email",
+      "type": "mutable",
+      "value": "jordan.lee@oldmail.com",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "jordan.lee@oldmail.com", "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+        { "value": "jordan.lee@newmail.io", "as_of": "2026-02-05T13:00:00Z", "source_session": 2 },
+        { "value": "jordan.lee@oldmail.com", "as_of": "2026-02-20T10:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What email address do you have for me?",
+    "required_capabilities": ["retrieval", "update_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "jordan.lee@oldmail.com",
+    "value_history": [
+      { "value": "jordan.lee@oldmail.com", "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+      { "value": "jordan.lee@newmail.io", "as_of": "2026-02-05T13:00:00Z", "source_session": 2 },
+      { "value": "jordan.lee@oldmail.com", "as_of": "2026-02-20T10:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
+    }
+  },
+  "failure_modes": ["stale_memory", "revert_failure", "history_loss"],
+  "interference": [
+    {
+      "type": "revert_ambiguity",
+      "description": "The phrase 'go back to my old email' requires resolving a reference to a prior historical value. Systems without value history cannot fulfil this."
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "scenario_id": "multi_hop-003-sister-anniversary",
+  "version": "1.0.0",
+  "category": "multi_hop",
+  "description": "User mentions their sister's name in one session and the sister's wedding anniversary in another. Probe asks when the sister's anniversary is, requiring linking the family relationship to the date.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-14T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm planning a family dinner for my parents' visit. My sister Emma is helping me organize it." },
+        { "role": "assistant", "content": "That's nice that Emma is helping. How many people will be at the dinner?" }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-05T13:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My brother Tom's birthday is coming up on March 3rd. I need gift ideas for a 30-year-old guy who likes hiking." },
+        { "role": "assistant", "content": "For a hiking enthusiast turning 30, you could consider a quality headlamp, a packable hammock, or a national parks pass." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-20T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Emma and her husband are celebrating their anniversary on June 15th. I want to do something special for them." },
+        { "role": "assistant", "content": "June 15th, that's lovely. Any idea what kind of gift or gesture they'd appreciate?" }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-10T15:30:00Z",
+      "messages": [
+        { "role": "user", "content": "Tom just told me he's going to propose to his girlfriend next month. Exciting times for the family." },
+        { "role": "assistant", "content": "That is exciting! Your family has a lot to celebrate." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-05-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I want to book a restaurant for a surprise celebration. When is my sister's wedding anniversary again?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "sister_identity",
+      "type": "entity",
+      "value": "Emma",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Emma", "as_of": "2026-01-14T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "emma_anniversary",
+      "type": "explicit",
+      "value": "June 15",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "June 15", "as_of": "2026-03-20T09:00:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "brother_identity",
+      "type": "entity",
+      "value": "Tom",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Tom", "as_of": "2026-02-05T13:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "tom_birthday",
+      "type": "explicit",
+      "value": "March 3",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "March 3", "as_of": "2026-02-05T13:00:00Z", "source_session": 2 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "When is my sister's wedding anniversary?",
+    "required_capabilities": ["retrieval", "multi_hop"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "June 15",
+    "value_history": [
+      { "value": "June 15", "as_of": "2026-03-20T09:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "exact" }
+  },
+  "failure_modes": ["missing_link", "entity_confusion", "date_confusion"],
+  "interference": [
+    {
+      "type": "competing_date",
+      "description": "Tom's birthday (March 3) could be confused with Emma's anniversary (June 15)"
+    }
+  ]
+}

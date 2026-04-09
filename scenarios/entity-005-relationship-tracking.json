@@ -1,0 +1,270 @@
+{
+  "scenario_id": "entity-005-relationship-tracking",
+  "version": "1.0.0",
+  "category": "entity",
+  "description": "User describes relationships between multiple people: Alex is the user's coworker, Sam is Alex's partner. Tests whether the system tracks indirect relationships and can answer questions about the social graph.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-12T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My coworker Alex and I are on the same product team at Opal. He handles backend, I handle frontend."
+        },
+        {
+          "role": "assistant",
+          "content": "Got it -- you and Alex are on the same product team at Opal. Alex does backend, you do frontend."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-26T18:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Had dinner with Alex and his partner Sam last night. Sam is a veterinarian -- she runs her own clinic."
+        },
+        {
+          "role": "assistant",
+          "content": "Sounds like a nice evening. Sam is Alex's partner and a veterinarian with her own clinic."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-08T10:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Sam mentioned she's looking for a new office manager for her vet clinic. I told her I'd ask around."
+        },
+        {
+          "role": "assistant",
+          "content": "I'll note that -- Sam's vet clinic needs an office manager. Let me know if you want help with that."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-20T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Alex told me Sam adopted a rescue dog from one of her clients. They named him Biscuit."
+        },
+        {
+          "role": "assistant",
+          "content": "That's sweet! Biscuit the rescue dog, adopted by Alex and Sam."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-01T11:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Alex is hosting a housewarming party next Saturday. He and Sam just moved into a new place in Fremont."
+        },
+        {
+          "role": "assistant",
+          "content": "Congrats to them! Housewarming next Saturday at their new place in Fremont."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-08T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I want to bring a gift to Alex and Sam's housewarming. Remind me -- what do I know about Sam?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "alex_coworker",
+      "type": "entity",
+      "value": {
+        "name": "Alex",
+        "company": "Opal",
+        "role": "backend engineer",
+        "relationship_to_user": "coworker"
+      },
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": {
+            "name": "Alex",
+            "company": "Opal",
+            "role": "backend engineer"
+          },
+          "as_of": "2026-01-12T09:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "sam_vet",
+      "type": "entity",
+      "value": {
+        "name": "Sam",
+        "profession": "veterinarian",
+        "business": "owns vet clinic",
+        "relationship_to_alex": "partner"
+      },
+      "introduced_in": 2,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": {
+            "name": "Sam",
+            "profession": "veterinarian",
+            "business": "owns vet clinic"
+          },
+          "as_of": "2026-01-26T18:00:00Z",
+          "source_session": 2
+        },
+        {
+          "value": {
+            "hiring": "looking for office manager"
+          },
+          "as_of": "2026-02-08T10:30:00Z",
+          "source_session": 3
+        }
+      ]
+    },
+    {
+      "id": "alex_sam_relationship",
+      "type": "entity",
+      "value": {
+        "entity_a": "Alex",
+        "entity_b": "Sam",
+        "relationship": "partners",
+        "shared": [
+          "dog named Biscuit",
+          "live in Fremont"
+        ]
+      },
+      "introduced_in": 2,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": {
+            "relationship": "partners"
+          },
+          "as_of": "2026-01-26T18:00:00Z",
+          "source_session": 2
+        },
+        {
+          "value": {
+            "dog": "Biscuit (rescue)"
+          },
+          "as_of": "2026-02-20T14:00:00Z",
+          "source_session": 4
+        },
+        {
+          "value": {
+            "location": "Fremont, new home"
+          },
+          "as_of": "2026-03-01T11:00:00Z",
+          "source_session": 5
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "I want to bring a gift to Alex and Sam's housewarming. Remind me -- what do I know about Sam?",
+    "required_capabilities": [
+      "retrieval",
+      "relationship_traversal",
+      "multi_hop"
+    ],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": {
+      "name": "Sam",
+      "profession": "veterinarian",
+      "business": "owns vet clinic",
+      "relationship_to_alex": "partner",
+      "relationship_to_user": "coworker's partner (indirect, via Alex)",
+      "pet": "Biscuit (rescue dog)",
+      "location": "Fremont (new home with Alex)"
+    },
+    "value_history": [
+      {
+        "value": {
+          "name": "Sam",
+          "profession": "veterinarian",
+          "relationship": "Alex's partner"
+        },
+        "as_of": "2026-01-26T18:00:00Z",
+        "source_session": 2
+      },
+      {
+        "value": {
+          "hiring": "office manager for clinic"
+        },
+        "as_of": "2026-02-08T10:30:00Z",
+        "source_session": 3
+      },
+      {
+        "value": {
+          "pet": "Biscuit (rescue dog)"
+        },
+        "as_of": "2026-02-20T14:00:00Z",
+        "source_session": 4
+      },
+      {
+        "value": {
+          "location": "Fremont"
+        },
+        "as_of": "2026-03-01T11:00:00Z",
+        "source_session": 5
+      }
+    ],
+    "provenance": {
+      "source_session": 2,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "semantic",
+      "keywords": [
+        "veterinarian",
+        "vet clinic",
+        "Alex's partner",
+        "Biscuit",
+        "Fremont"
+      ]
+    }
+  },
+  "failure_modes": [
+    "missing_relationship",
+    "incomplete_aggregation",
+    "orphaned_attributes"
+  ],
+  "interference": [
+    {
+      "type": "indirect_relationship",
+      "description": "Sam's relationship to the user is indirect (through Alex). System must traverse the Alex->Sam link to surface Sam's details."
+    },
+    {
+      "type": "distributed_facts",
+      "description": "Facts about Sam are spread across sessions 2-5. System must aggregate all of them, not just return data from the session where Sam was first introduced."
+    }
+  ]
+}

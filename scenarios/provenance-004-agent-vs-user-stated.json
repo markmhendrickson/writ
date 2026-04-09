@@ -1,0 +1,238 @@
+{
+  "scenario_id": "provenance-004-agent-vs-user-stated",
+  "version": "1.0.0",
+  "category": "provenance",
+  "description": "Some facts are stated by the user, others are inferred or synthesized by the assistant. Probe asks which facts came directly from the user versus which the assistant derived. Tests agent-vs-user attribution.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-20T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I just bought a house for $425,000. The down payment was $85,000."
+        },
+        {
+          "role": "assistant",
+          "content": "Congratulations! That's a $425,000 purchase with $85,000 down, so your mortgage amount is $340,000."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-10T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The interest rate on my mortgage is 6.5% over 30 years."
+        },
+        {
+          "role": "assistant",
+          "content": "With $340,000 at 6.5% over 30 years, your estimated monthly payment would be about $2,149."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-01T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Property taxes are $4,200 per year."
+        },
+        {
+          "role": "assistant",
+          "content": "That adds $350/month. So total monthly housing cost is roughly $2,499."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-20T16:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated question — what's a good beginner piano piece?"
+        },
+        {
+          "role": "assistant",
+          "content": "Für Elise by Beethoven is a classic choice for beginners."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-01T11:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm applying for a financial review. Which of my housing numbers did I tell you directly, and which did you calculate?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "purchase_price",
+      "type": "explicit",
+      "value": 425000,
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": 425000,
+          "as_of": "2026-01-20T09:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "down_payment",
+      "type": "explicit",
+      "value": 85000,
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": 85000,
+          "as_of": "2026-01-20T09:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "mortgage_amount",
+      "type": "explicit",
+      "value": 340000,
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": 340000,
+          "as_of": "2026-01-20T09:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "interest_rate",
+      "type": "explicit",
+      "value": "6.5%",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "6.5%",
+          "as_of": "2026-02-10T14:00:00Z",
+          "source_session": 2
+        }
+      ]
+    },
+    {
+      "id": "monthly_payment",
+      "type": "explicit",
+      "value": 2149,
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": 2149,
+          "as_of": "2026-02-10T14:00:00Z",
+          "source_session": 2
+        }
+      ]
+    },
+    {
+      "id": "property_taxes",
+      "type": "explicit",
+      "value": 4200,
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": 4200,
+          "as_of": "2026-03-01T10:00:00Z",
+          "source_session": 3
+        }
+      ]
+    },
+    {
+      "id": "total_monthly_housing",
+      "type": "explicit",
+      "value": 2499,
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": 2499,
+          "as_of": "2026-03-01T10:00:00Z",
+          "source_session": 3
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "Which of my housing numbers did I tell you directly, and which did you calculate?",
+    "required_capabilities": [
+      "retrieval",
+      "provenance_tracing"
+    ],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": {
+      "user_stated": [
+        "purchase_price: $425,000",
+        "down_payment: $85,000",
+        "interest_rate: 6.5%",
+        "property_taxes: $4,200/year"
+      ],
+      "agent_derived": [
+        "mortgage_amount: $340,000",
+        "monthly_payment: ~$2,149",
+        "total_monthly_housing: ~$2,499"
+      ]
+    },
+    "value_history": [],
+    "provenance": {
+      "source_session": null,
+      "source_message_index": null,
+      "agent_or_user": "both"
+    },
+    "eval_rubric": {
+      "method": "multi_criterion",
+      "criteria": [
+        "correctly_classifies_user_stated",
+        "correctly_classifies_agent_derived",
+        "no_misattribution"
+      ]
+    }
+  },
+  "failure_modes": [
+    "provenance_loss",
+    "agent_authority_confusion",
+    "attribution_collapse"
+  ],
+  "interference": [
+    {
+      "type": "noise_session",
+      "session_id": 4,
+      "description": "Unrelated piano question between financial sessions"
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "scenario_id": "constraint-002-scheduling",
+  "version": "1.0.0",
+  "category": "constraint",
+  "description": "User states a hard scheduling constraint ('never available on Tuesdays') across sessions. Tests whether the system respects the constraint when proposing meeting times.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-03T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I need to set up my weekly schedule. Tuesdays are completely off-limits for me -- I have a standing family commitment every Tuesday."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll keep Tuesdays blocked off entirely. What about the rest of the week?"
+        },
+        {
+          "role": "user",
+          "content": "Monday through Friday otherwise is generally fine, mornings preferred."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-10T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you help me find a time to meet with my accountant this week?"
+        },
+        {
+          "role": "assistant",
+          "content": "Sure. How about Wednesday or Thursday morning?"
+        },
+        {
+          "role": "user",
+          "content": "Wednesday at 10am works. Thanks."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-17T11:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Someone suggested we meet on Tuesday. I told them that doesn't work for me, ever."
+        },
+        {
+          "role": "assistant",
+          "content": "Right, Tuesdays are blocked for your family commitment. Want me to suggest an alternative?"
+        },
+        {
+          "role": "user",
+          "content": "Yes, suggest Thursday instead."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-24T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My dentist has openings this week on Tuesday at 2pm, Wednesday at 9am, and Friday at 3pm. Which should I pick?"
+        },
+        {
+          "role": "assistant",
+          "content": "Since Tuesdays don't work for you, I'd suggest Wednesday at 9am -- it fits your morning preference."
+        },
+        {
+          "role": "user",
+          "content": "Perfect, book Wednesday."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-03T09:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I have a new client who wants a kickoff meeting. They're flexible on day and time. What should I propose?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "tuesday_blocked",
+      "type": "latent",
+      "value": "never available on Tuesdays due to standing family commitment",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "Tuesdays completely off-limits, family commitment",
+          "as_of": "2026-02-03T09:00:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "Reinforced: Tuesdays never work",
+          "as_of": "2026-02-17T11:00:00Z",
+          "source_session": 3
+        }
+      ]
+    },
+    {
+      "id": "morning_preference",
+      "type": "latent",
+      "value": "prefers morning meetings",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "mornings preferred",
+          "as_of": "2026-02-03T09:00:00Z",
+          "source_session": 1
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "I have a new client who wants a kickoff meeting. They're flexible on day and time. What should I propose?",
+    "required_capabilities": [
+      "retrieval",
+      "constraint_application"
+    ],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "propose a meeting on any weekday except Tuesday, preferably in the morning",
+    "value_history": [
+      {
+        "value": "Tuesdays off-limits, mornings preferred",
+        "as_of": "2026-02-03T09:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Reinforced Tuesday constraint",
+        "as_of": "2026-02-17T11:00:00Z",
+        "source_session": 3
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "constraint",
+      "keywords": [
+        "Monday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "morning"
+      ]
+    },
+    "constraint_check": {
+      "must_contain": [
+        "morning"
+      ],
+      "must_not_contain": [
+        "Tuesday"
+      ]
+    }
+  },
+  "failure_modes": [
+    "constraint_violation"
+  ],
+  "interference": [
+    {
+      "type": "recency_bias",
+      "description": "The constraint was stated in session 1 and reinforced in session 3. A system with recency bias might forget the constraint by session 5."
+    },
+    {
+      "type": "soft_preference_confusion",
+      "description": "Morning preference is soft (preference), Tuesday block is hard (constraint). System must treat them differently in priority."
+    }
+  ]
+}

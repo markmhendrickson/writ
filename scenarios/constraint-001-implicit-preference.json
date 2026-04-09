@@ -72,7 +72,18 @@
       "source_session": 1,
       "source_message_index": 2,
       "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "semantic", "keywords": ["dairy-free", "no cheese", "no cream", "plant-based milk"] },
+    "constraint_check": {
+      "must_contain": ["dairy-free"],
+      "must_not_contain": ["cheese", "cream", "butter", "whole milk", "yogurt"]
     }
   },
-  "failure_modes": ["constraint_violation", "missing_memory"]
+  "failure_modes": ["constraint_violation", "missing_memory"],
+  "interference": [
+    {
+      "type": "surface_similarity",
+      "description": "User mentions food preferences frequently but the latent constraint is specifically dairy avoidance, not a general dietary restriction."
+    }
+  ]
 }

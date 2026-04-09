@@ -1,0 +1,100 @@
+{
+  "scenario_id": "forgetting-004-temporary-override",
+  "version": "1.0.0",
+  "category": "forgetting",
+  "description": "User provides a permanent home address, then a temporary hotel address 'just for this week'. Tests whether the system reverts to the permanent address after the temporary override expires.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-04-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My home address is 200 Pine Street, Seattle, WA 98101." },
+        { "role": "assistant", "content": "Got it. Your home address is 200 Pine Street, Seattle, WA 98101." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-04-10T08:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm traveling for work this week. Just for this week, my address is the Marriott Downtown, 500 Congress Ave, Austin, TX 78701. Don't overwrite my home address." },
+        { "role": "assistant", "content": "Noted. For this week, I'll use the Marriott Downtown at 500 Congress Ave, Austin, TX 78701. Your permanent home address remains 200 Pine Street, Seattle." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-04-12T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you order dinner to my current location?" },
+        { "role": "assistant", "content": "Sure, I'll use your temporary address: Marriott Downtown, 500 Congress Ave, Austin, TX 78701." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-20T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm back home. Can you confirm my address?" },
+        { "role": "assistant", "content": "Welcome back! Your home address is 200 Pine Street, Seattle, WA 98101." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-05-01T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What's my address?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "home_address",
+      "type": "explicit",
+      "value": "200 Pine Street, Seattle, WA 98101",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "200 Pine Street, Seattle, WA 98101", "as_of": "2026-04-01T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "temporary_address",
+      "type": "non_memory",
+      "value": "Marriott Downtown, 500 Congress Ave, Austin, TX 78701",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": false,
+      "scope": "time_bound",
+      "expiry_hint": "one week from 2026-04-10",
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What's my address?",
+    "required_capabilities": ["retrieval", "selective_forgetting", "temporal_scope"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "200 Pine Street, Seattle, WA 98101",
+    "value_history": [
+      { "value": "200 Pine Street, Seattle, WA 98101", "as_of": "2026-04-01T10:00:00Z", "source_session": 1 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
+    }
+  },
+  "failure_modes": ["over_retention", "temporary_override_persisted", "permanent_value_clobbered"],
+  "interference": [
+    {
+      "type": "temporal_override",
+      "description": "The hotel address was explicitly scoped to one week. After that window, the system must revert to the permanent home address. Systems that treat all updates as permanent will return the hotel address."
+    }
+  ]
+}

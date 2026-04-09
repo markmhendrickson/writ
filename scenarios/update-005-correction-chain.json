@@ -1,0 +1,106 @@
+{
+  "scenario_id": "update-005-correction-chain",
+  "version": "1.0.0",
+  "category": "update",
+  "description": "The assistant infers an incorrect fact from context, the user corrects it, and the correction itself is later refined. Tests whether the system distinguishes user-stated facts from assistant inferences and tracks a chain of corrections.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-03-05T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I just got back from a two-week trip to Tokyo." },
+        { "role": "assistant", "content": "Welcome back! That must have been a great vacation in Japan." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-06T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "By the way, it wasn't a vacation. I was there for a work conference." },
+        { "role": "assistant", "content": "Apologies for the assumption. Noted that your Tokyo trip was for a work conference." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-10T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "To be more precise, it was a client engagement, not a conference. I was on-site with our Tokyo office for two weeks." },
+        { "role": "assistant", "content": "Got it. Your Tokyo trip was a two-week client engagement at your company's Tokyo office." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My manager asked me to write a trip summary. What do you know about my Tokyo trip?" },
+        { "role": "assistant", "content": "Your Tokyo trip was a two-week client engagement at your company's Tokyo office, from around late February to early March 2026." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-15T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you remind me what my recent Tokyo trip was about?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "tokyo_trip_purpose",
+      "type": "mutable",
+      "value": "two-week client engagement at Tokyo office",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "vacation", "as_of": "2026-03-05T10:00:00Z", "source_session": 1, "source": "assistant_inference" },
+        { "value": "work conference", "as_of": "2026-03-06T09:00:00Z", "source_session": 2, "source": "user_correction" },
+        { "value": "two-week client engagement at Tokyo office", "as_of": "2026-03-10T11:00:00Z", "source_session": 3, "source": "user_correction" }
+      ]
+    },
+    {
+      "id": "tokyo_trip_duration",
+      "type": "explicit",
+      "value": "two weeks",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "two weeks", "as_of": "2026-03-05T10:00:00Z", "source_session": 1 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "Can you remind me what my recent Tokyo trip was about?",
+    "required_capabilities": ["retrieval", "update_tracking", "correction_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "two-week client engagement at Tokyo office",
+    "value_history": [
+      { "value": "vacation", "as_of": "2026-03-05T10:00:00Z", "source_session": 1 },
+      { "value": "work conference", "as_of": "2026-03-06T09:00:00Z", "source_session": 2 },
+      { "value": "two-week client engagement at Tokyo office", "as_of": "2026-03-10T11:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["client engagement", "Tokyo"],
+      "forbidden_elements": ["vacation", "conference"]
+    }
+  },
+  "failure_modes": ["stale_memory", "assistant_inference_persisted", "correction_lost"],
+  "interference": [
+    {
+      "type": "inference_contamination",
+      "description": "The assistant's initial inference ('vacation') was never stated by the user. Systems that store assistant inferences as user facts may return the wrong value even after correction."
+    }
+  ]
+}

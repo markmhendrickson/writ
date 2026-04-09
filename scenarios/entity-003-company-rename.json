@@ -1,0 +1,111 @@
+{
+  "scenario_id": "entity-003-company-rename",
+  "version": "1.0.0",
+  "category": "entity",
+  "description": "A company the user interacts with rebrands from 'Globex' to 'NovaTech'. Tests whether the system links the old and new names as the same entity and preserves history under both names.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-05T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I just signed a consulting contract with Globex. They're a mid-size logistics company based in Portland." },
+        { "role": "assistant", "content": "Congrats on the new contract! Globex -- logistics company in Portland. What kind of consulting?" },
+        { "role": "user", "content": "Supply chain optimization. The engagement is 6 months." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Had my first onsite at Globex today. Met their CTO, Raj Patel. Great team." },
+        { "role": "assistant", "content": "Good to hear the Globex team is solid. Raj Patel as CTO -- I'll remember that." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Big news at my client: Globex is rebranding. They're now called NovaTech. Same company, same people, just a new name and visual identity." },
+        { "role": "assistant", "content": "Got it -- Globex is now NovaTech. Same logistics company in Portland, same team including Raj Patel." },
+        { "role": "user", "content": "Exactly. All my contracts just updated the name, everything else stays the same." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-25T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "NovaTech wants to extend my contract by 3 months. I'm considering it." },
+        { "role": "assistant", "content": "That's a good sign they value your work. The original was 6 months, so this would bring it to 9 total?" },
+        { "role": "user", "content": "Correct. I'll probably say yes." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-05T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to send an invoice. Can you remind me of the details about my consulting client -- the logistics company?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "globex_novatech",
+      "type": "entity",
+      "value": { "name": "NovaTech", "previous_name": "Globex", "industry": "logistics", "location": "Portland", "cto": "Raj Patel" },
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "name": "Globex", "industry": "logistics", "location": "Portland" }, "as_of": "2026-01-05T10:00:00Z", "source_session": 1 },
+        { "value": { "name": "Globex", "cto": "Raj Patel" }, "as_of": "2026-01-20T14:00:00Z", "source_session": 2 },
+        { "value": { "name": "NovaTech", "previous_name": "Globex" }, "as_of": "2026-02-10T09:00:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "consulting_contract",
+      "type": "entity",
+      "value": { "type": "consulting contract", "client": "NovaTech", "scope": "supply chain optimization", "duration": "9 months (extended)" },
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "client": "Globex", "duration": "6 months" }, "as_of": "2026-01-05T10:00:00Z", "source_session": 1 },
+        { "value": { "client": "NovaTech", "duration": "9 months (extended)" }, "as_of": "2026-02-25T11:00:00Z", "source_session": 4 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "I need to send an invoice. Can you remind me of the details about my consulting client -- the logistics company?",
+    "required_capabilities": ["retrieval", "entity_resolution"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": { "name": "NovaTech", "previous_name": "Globex", "industry": "logistics", "location": "Portland", "cto": "Raj Patel", "contract_scope": "supply chain optimization", "contract_duration": "9 months" },
+    "value_history": [
+      { "value": { "name": "Globex", "industry": "logistics", "location": "Portland" }, "as_of": "2026-01-05T10:00:00Z", "source_session": 1 },
+      { "value": { "cto": "Raj Patel" }, "as_of": "2026-01-20T14:00:00Z", "source_session": 2 },
+      { "value": { "name": "NovaTech", "rebrand": true }, "as_of": "2026-02-10T09:00:00Z", "source_session": 3 },
+      { "value": { "contract_extended": "9 months" }, "as_of": "2026-02-25T11:00:00Z", "source_session": 4 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "semantic", "keywords": ["NovaTech", "Globex", "logistics", "Portland", "Raj Patel", "supply chain"] }
+  },
+  "failure_modes": ["entity_duplication", "orphaned_attributes"],
+  "interference": [
+    {
+      "type": "name_change_orphan",
+      "description": "Attributes learned under 'Globex' (CTO, location, industry) must transfer to 'NovaTech'. System must not orphan pre-rename facts."
+    },
+    {
+      "type": "ambiguous_reference",
+      "description": "Probe uses 'the logistics company' rather than either name. System must resolve this indirect reference to the NovaTech/Globex entity."
+    }
+  ]
+}

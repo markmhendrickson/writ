@@ -1,0 +1,96 @@
+{
+  "scenario_id": "provenance-002-multi-source",
+  "version": "1.0.0",
+  "category": "provenance",
+  "description": "The same fact — a meeting date — is mentioned across three different sessions with slightly different context each time. Probe asks for the original source. Tests multi-source provenance disambiguation.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-01T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My annual review is scheduled for April 15." },
+        { "role": "assistant", "content": "Noted — annual review on April 15." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to prep for my review. It's April 15, right?" },
+        { "role": "assistant", "content": "Yes, your annual review is on April 15." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-10T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you remind me of my upcoming deadlines?" },
+        { "role": "assistant", "content": "You have your annual review on April 15." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-25T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My manager just pushed the review to April 22." },
+        { "role": "assistant", "content": "Updated — annual review moved to April 22." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-01T08:00:00Z",
+      "messages": [
+        { "role": "user", "content": "When was the April 15 date for my review first established? Which session?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "annual_review_date",
+      "type": "mutable",
+      "value": "April 22",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "April 15", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 },
+        { "value": "April 22", "as_of": "2026-03-25T11:00:00Z", "source_session": 4 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "When was the April 15 date for my review first established? Which session?",
+    "required_capabilities": ["retrieval", "provenance_tracing"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "April 22",
+    "value_history": [
+      { "value": "April 15", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 },
+      { "value": "April 15 (reconfirmed)", "as_of": "2026-02-20T14:00:00Z", "source_session": 2 },
+      { "value": "April 15 (recalled by assistant)", "as_of": "2026-03-10T10:00:00Z", "source_session": 3 },
+      { "value": "April 22", "as_of": "2026-03-25T11:00:00Z", "source_session": 4 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "contains", "expected_terms": ["session 1", "February 1", "first"] }
+  },
+  "failure_modes": ["provenance_loss", "source_confusion", "recency_bias"],
+  "interference": [
+    {
+      "type": "echo_mention",
+      "session_id": 2,
+      "description": "User reconfirms the same date, could be mistaken as the origin"
+    },
+    {
+      "type": "echo_mention",
+      "session_id": 3,
+      "description": "Assistant recalls the date unprompted, could be mistaken as the origin"
+    }
+  ]
+}

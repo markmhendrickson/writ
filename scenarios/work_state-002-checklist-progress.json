@@ -1,0 +1,147 @@
+{
+  "scenario_id": "work_state-002-checklist-progress",
+  "version": "1.0.0",
+  "category": "work_state",
+  "description": "User works through a pre-launch checklist over several sessions, marking items done at different times. Probe asks which items remain unchecked.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-01T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "We're launching the app on March 1st. Here's the pre-launch checklist: 1) SSL certificate installed, 2) Load testing complete, 3) Backup system verified, 4) Error monitoring configured, 5) Documentation published, 6) DNS records updated." },
+        { "role": "assistant", "content": "Got the six-item pre-launch checklist. March 1st launch date noted." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-07T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "SSL cert is installed and verified. Also configured error monitoring with Sentry. Two down." },
+        { "role": "assistant", "content": "SSL and error monitoring are done. Four items remaining." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-14T10:30:00Z",
+      "messages": [
+        { "role": "user", "content": "Load testing is complete. We hit 10K concurrent users with no issues. Also updated the DNS records yesterday." },
+        { "role": "assistant", "content": "Great results on the load test. DNS records updated too. Two items left." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-20T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Documentation is published on the docs site. Backup system is the last thing I need to verify." },
+        { "role": "assistant", "content": "Almost there. Just the backup system verification left." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-22T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you tell me exactly which pre-launch checklist items are still incomplete?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "checklist_ssl",
+      "type": "work_state",
+      "value": "done",
+      "introduced_in": 1,
+      "updated_in": 2,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 },
+        { "value": "done", "as_of": "2026-02-07T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "checklist_load_testing",
+      "type": "work_state",
+      "value": "done",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 },
+        { "value": "done", "as_of": "2026-02-14T10:30:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "checklist_backup",
+      "type": "work_state",
+      "value": "pending",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "checklist_error_monitoring",
+      "type": "work_state",
+      "value": "done",
+      "introduced_in": 1,
+      "updated_in": 2,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 },
+        { "value": "done", "as_of": "2026-02-07T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "checklist_documentation",
+      "type": "work_state",
+      "value": "done",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 },
+        { "value": "done", "as_of": "2026-02-20T11:00:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "checklist_dns",
+      "type": "work_state",
+      "value": "done",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-01T09:00:00Z", "source_session": 1 },
+        { "value": "done", "as_of": "2026-02-14T10:30:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "Which pre-launch checklist items are still incomplete?",
+    "required_capabilities": ["retrieval", "work_state_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Backup system verified",
+    "value_history": [],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["backup system: pending"]
+    }
+  },
+  "failure_modes": ["stale_task_state", "wrong_status", "missing_completion_update"],
+  "interference": []
+}

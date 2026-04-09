@@ -1,0 +1,201 @@
+{
+  "scenario_id": "constraint-003-multi-constraint",
+  "version": "1.0.0",
+  "category": "constraint",
+  "description": "User has two dietary constraints introduced in separate sessions: dairy-free and nut allergy. Tests whether the system applies both constraints simultaneously when recommending food.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-08T18:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm lactose intolerant, so I avoid all dairy. No milk, cheese, cream, butter, any of it."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted -- you avoid all dairy products due to lactose intolerance."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-15T12:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you suggest a snack? I'm craving something sweet."
+        },
+        {
+          "role": "assistant",
+          "content": "How about some dark chocolate or a fruit smoothie with oat milk?"
+        },
+        {
+          "role": "user",
+          "content": "Dark chocolate sounds great."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-22T14:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I had a scare last week. Turns out I have a tree nut allergy -- walnuts, almonds, cashews, the whole family. I need to avoid all nuts now."
+        },
+        {
+          "role": "assistant",
+          "content": "That's serious. I'll remember to exclude all tree nuts from any food suggestions. Are peanuts okay, or should I avoid those too?"
+        },
+        {
+          "role": "user",
+          "content": "Peanuts are fine, just tree nuts."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-01T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Made a stir-fry last night without any dairy or nuts -- came out amazing."
+        },
+        {
+          "role": "assistant",
+          "content": "Nice! Sounds like you're finding good meals that work with your restrictions."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-05T19:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm going to a potluck this weekend. What's a good dessert I could bring?"
+        },
+        {
+          "role": "assistant",
+          "content": "How about coconut milk panna cotta with fresh berries? Or a peanut butter brownie made with oat milk?"
+        },
+        {
+          "role": "user",
+          "content": "Ooh, the panna cotta idea is great."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-02-12T15:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My friend's birthday is next week. I want to bake something for her. Can you recommend a dessert recipe I can make?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "dairy_free",
+      "type": "latent",
+      "value": "avoids all dairy (lactose intolerant): no milk, cheese, cream, butter",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "lactose intolerant, avoids all dairy",
+          "as_of": "2026-01-08T18:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "nut_allergy",
+      "type": "latent",
+      "value": "tree nut allergy: avoids walnuts, almonds, cashews and all tree nuts; peanuts are safe",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "tree nut allergy, all tree nuts excluded, peanuts okay",
+          "as_of": "2026-01-22T14:30:00Z",
+          "source_session": 3
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "My friend's birthday is next week. I want to bake something for her. Can you recommend a dessert recipe I can make?",
+    "required_capabilities": [
+      "retrieval",
+      "constraint_application",
+      "multi_hop"
+    ],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "dessert recipe free of both dairy and tree nuts",
+    "value_history": [
+      {
+        "value": "dairy-free constraint established",
+        "as_of": "2026-01-08T18:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "tree nut allergy constraint added",
+        "as_of": "2026-01-22T14:30:00Z",
+        "source_session": 3
+      }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "constraint",
+      "keywords": [
+        "dairy-free",
+        "nut-free",
+        "no milk",
+        "no almonds"
+      ]
+    },
+    "constraint_check": {
+      "must_not_contain": [
+        "milk",
+        "cream",
+        "butter",
+        "cheese",
+        "almond",
+        "walnut",
+        "cashew",
+        "pistachio",
+        "pecan",
+        "hazelnut"
+      ]
+    }
+  },
+  "failure_modes": [
+    "constraint_violation",
+    "partial_constraint_application"
+  ],
+  "interference": [
+    {
+      "type": "constraint_ordering",
+      "description": "Dairy constraint was introduced first (session 1), nut allergy second (session 3). System must apply both, not just the most recent."
+    },
+    {
+      "type": "exception_handling",
+      "description": "Peanuts are explicitly safe despite nut allergy. System must not over-generalize the nut allergy to include peanuts."
+    }
+  ]
+}

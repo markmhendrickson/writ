@@ -1,4 +1,4 @@
-import type { MemoryAdapter } from "../adapter.js";
+import type { MemoryAdapter, AdapterCapabilities } from "../adapter.js";
 import type {
   Session,
   ProbeOptions,
@@ -76,6 +76,15 @@ export class BaselineAdapter implements MemoryAdapter {
     return null;
   }
 
+  getCapabilities(): AdapterCapabilities {
+    return {
+      supports_history: false,
+      supports_temporal_replay: false,
+      supports_provenance: false,
+      supports_abstention: false,
+    };
+  }
+
   async reset(): Promise<void> {
     this.store.clear();
   }
@@ -86,16 +95,26 @@ export class BaselineAdapter implements MemoryAdapter {
 
   private extractFacts(content: string): [string, unknown][] {
     const facts: [string, unknown][] = [];
-    const patterns = [
-      /my (\w+) is (.+)/gi,
-      /I (?:work|live|am) (?:at|in|a) (.+)/gi,
-    ];
-    for (const pattern of patterns) {
-      let match;
-      while ((match = pattern.exec(content)) !== null) {
-        facts.push([match[1]!.toLowerCase(), match[2]!.trim()]);
+
+    const kvPattern = /my (\w+) is (.+)/gi;
+    let match;
+    while ((match = kvPattern.exec(content)) !== null) {
+      if (match[1] && match[2]) {
+        facts.push([match[1].toLowerCase(), match[2].trim()]);
       }
     }
+
+    const verbPatterns = [
+      { pattern: /I (?:work|am working) at (.+?)(?:\.|,|$)/gi, key: "work" },
+      { pattern: /I (?:live|moved) (?:in|to) (.+?)(?:\.|,|$)/gi, key: "location" },
+    ];
+    for (const { pattern, key } of verbPatterns) {
+      let m;
+      while ((m = pattern.exec(content)) !== null) {
+        if (m[1]) facts.push([key, m[1].trim()]);
+      }
+    }
+
     return facts;
   }
 

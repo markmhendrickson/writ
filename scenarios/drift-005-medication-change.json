@@ -1,0 +1,166 @@
+{
+  "scenario_id": "drift-005-medication-change",
+  "version": "1.0.0",
+  "category": "drift",
+  "description": "User's medication and health condition management changes across eight sessions as they work with their doctor to find the right treatment. Tests tracking of dosage changes, medication switches, side effects, and discontinuation.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2025-08-12T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I was just diagnosed with high blood pressure. My doctor put me on lisinopril 10mg once daily." },
+        { "role": "assistant", "content": "That's a common first-line treatment for hypertension. Lisinopril 10mg is a standard starting dose. Make sure to take it consistently and monitor any side effects." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2025-10-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Follow-up with my doctor today. Blood pressure is still a bit high so they increased my lisinopril to 20mg." },
+        { "role": "assistant", "content": "Dosage adjustments are normal while finding the right level. 20mg is still within the typical range for lisinopril." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2025-12-05T11:30:00Z",
+      "messages": [
+        { "role": "user", "content": "I've been having a persistent dry cough for weeks. My doctor says it's a known side effect of lisinopril. She's switching me to losartan 50mg instead." },
+        { "role": "assistant", "content": "The dry cough is one of the most common reasons people switch from ACE inhibitors like lisinopril to ARBs like losartan. Losartan 50mg should help without that side effect." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-10T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Losartan is working well for blood pressure. Cough is gone. But my doctor also started me on metformin 500mg for pre-diabetes they caught in my bloodwork." },
+        { "role": "assistant", "content": "Glad the losartan is working. Metformin 500mg is a typical starting dose for managing pre-diabetes. Watch for any GI side effects in the first few weeks." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-15T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Good checkup today. Blood pressure is under control. But my A1C is still borderline so they bumped the metformin to 1000mg." },
+        { "role": "assistant", "content": "Increasing to metformin 1000mg is a common next step. Good to hear the blood pressure is stable on losartan." }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-06-20T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I've been exercising and changed my diet significantly. My doctor was impressed by my progress. She reduced metformin back to 500mg and said if my next labs look good, I might be able to stop it." },
+        { "role": "assistant", "content": "That's great progress! Lifestyle changes can make a real difference with pre-diabetes. Encouraging that your doctor is considering discontinuing metformin." }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-08-25T13:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Labs came back normal! Doctor took me off metformin entirely. I'm just on losartan 50mg now for the blood pressure." },
+        { "role": "assistant", "content": "Congratulations! Getting off metformin through lifestyle changes is a real achievement. Losartan 50mg continuing for blood pressure management makes sense as a long-term plan." }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-10-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm seeing a new doctor since I moved. Can you give me a summary of my medication history over the past year so I can bring her up to speed?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "blood_pressure_medication",
+      "type": "mutable",
+      "value": "losartan 50mg",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "lisinopril 10mg", "as_of": "2025-08-12T09:00:00Z", "source_session": 1 },
+        { "value": "lisinopril 20mg", "as_of": "2025-10-20T14:00:00Z", "source_session": 2 },
+        { "value": "losartan 50mg", "as_of": "2025-12-05T11:30:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "diabetes_medication",
+      "type": "mutable",
+      "value": null,
+      "introduced_in": 4,
+      "updated_in": 6,
+      "retracted_in": 7,
+      "should_persist": false,
+      "previous_values": [
+        { "value": "metformin 500mg", "as_of": "2026-02-10T10:00:00Z", "source_session": 4 },
+        { "value": "metformin 1000mg", "as_of": "2026-04-15T16:00:00Z", "source_session": 5 },
+        { "value": "metformin 500mg", "as_of": "2026-06-20T09:00:00Z", "source_session": 6 },
+        { "value": null, "as_of": "2026-08-25T13:00:00Z", "source_session": 7 }
+      ]
+    },
+    {
+      "id": "health_conditions",
+      "type": "mutable",
+      "value": "high blood pressure (controlled), pre-diabetes (resolved)",
+      "introduced_in": 1,
+      "updated_in": 7,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "high blood pressure", "as_of": "2025-08-12T09:00:00Z", "source_session": 1 },
+        { "value": "high blood pressure, pre-diabetes", "as_of": "2026-02-10T10:00:00Z", "source_session": 4 },
+        { "value": "high blood pressure (controlled), pre-diabetes (resolved)", "as_of": "2026-08-25T13:00:00Z", "source_session": 7 }
+      ]
+    },
+    {
+      "id": "lisinopril_side_effect",
+      "type": "mutable",
+      "value": "dry cough (reason for discontinuation)",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "dry cough", "as_of": "2025-12-05T11:30:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 8,
+    "prompt": "Can you give me a summary of my medication history over the past year so I can bring her up to speed?",
+    "required_capabilities": ["retrieval", "update_tracking", "history_preservation", "retraction_handling"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "losartan 50mg (only current medication)",
+    "value_history": [
+      { "value": "lisinopril 10mg started", "as_of": "2025-08-12T09:00:00Z", "source_session": 1 },
+      { "value": "lisinopril increased to 20mg", "as_of": "2025-10-20T14:00:00Z", "source_session": 2 },
+      { "value": "switched to losartan 50mg (dry cough from lisinopril)", "as_of": "2025-12-05T11:30:00Z", "source_session": 3 },
+      { "value": "metformin 500mg added for pre-diabetes", "as_of": "2026-02-10T10:00:00Z", "source_session": 4 },
+      { "value": "metformin increased to 1000mg", "as_of": "2026-04-15T16:00:00Z", "source_session": 5 },
+      { "value": "metformin reduced to 500mg", "as_of": "2026-06-20T09:00:00Z", "source_session": 6 },
+      { "value": "metformin discontinued", "as_of": "2026-08-25T13:00:00Z", "source_session": 7 }
+    ],
+    "provenance": {
+      "source_session": 7,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["lisinopril", "losartan", "metformin", "dry cough", "pre-diabetes", "discontinued"]
+    }
+  },
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory", "retraction_failure", "dosage_confusion"],
+  "interference": [
+    {
+      "type": "dosage_oscillation",
+      "description": "Metformin went 500mg → 1000mg → 500mg → discontinued. System must track the non-monotonic dosage changes without losing intermediate values."
+    },
+    {
+      "type": "medication_class_switch",
+      "description": "Lisinopril (ACE inhibitor) was replaced by losartan (ARB) for the same condition. System must track this as a switch, not an addition."
+    }
+  ]
+}

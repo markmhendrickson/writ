@@ -6,17 +6,9 @@ import type {
   Provenance,
 } from "./types.js";
 
-/**
- * Memory system adapter interface.
- *
- * Each adapter wraps a specific memory system (Neotoma, Mem0, a plain
- * key-value store, etc.) and exposes the operations WRIT needs to
- * run scenarios and evaluate write-integrity properties.
- */
 export interface MemoryAdapter {
   readonly name: string;
 
-  /** Set up any connections, databases, or initial state. */
   init(): Promise<void>;
 
   /**
@@ -51,19 +43,13 @@ export interface MemoryAdapter {
    */
   getProvenance(factId: string): Promise<Provenance | null>;
 
-  /** Reset all state. Called between scenarios. */
+  getCapabilities(): AdapterCapabilities;
+
   reset(): Promise<void>;
 
-  /** Clean up connections, temporary state. */
   teardown(): Promise<void>;
 }
 
-/**
- * Adapter capabilities reported during init.
- * WRIT uses these to adjust scoring -- systems that don't claim
- * history support aren't penalized for missing temporal metrics,
- * but their scorecard shows "not supported" rather than a number.
- */
 export interface AdapterCapabilities {
   supports_history: boolean;
   supports_temporal_replay: boolean;

@@ -1,0 +1,126 @@
+{
+  "scenario_id": "multi_hop-002-dentist-phone",
+  "version": "1.0.0",
+  "category": "multi_hop",
+  "description": "User mentions their dentist by name in one session and the dentist's phone number in another. Probe asks for the dentist's phone number, requiring linking both facts.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-03T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to schedule a cleaning. My dentist is Dr. Patel over on 5th Avenue." },
+        { "role": "assistant", "content": "Dr. Patel on 5th Avenue, got it. Do you want help finding available times?" }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-18T15:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I also need to see an optometrist soon. My eye doctor is Dr. Nguyen, her number is 555-0199." },
+        { "role": "assistant", "content": "Noted, Dr. Nguyen at 555-0199 for your eye appointment." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-12T09:30:00Z",
+      "messages": [
+        { "role": "user", "content": "I called Dr. Patel's office yesterday. Their number is 555-0142. They didn't have anything until April." },
+        { "role": "assistant", "content": "That's a long wait. 555-0142 for Dr. Patel's office. Want me to remind you to call back in a couple weeks?" }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-28T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My tooth has been hurting. I should really call the dentist back." },
+        { "role": "assistant", "content": "Definitely don't wait on tooth pain. You should call as soon as possible." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-01T08:45:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm going to call my dentist right now. What's their phone number?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "dentist_identity",
+      "type": "entity",
+      "value": "Dr. Patel",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Dr. Patel", "as_of": "2026-02-03T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "dr_patel_phone",
+      "type": "explicit",
+      "value": "555-0142",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "555-0142", "as_of": "2026-03-12T09:30:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "optometrist_identity",
+      "type": "entity",
+      "value": "Dr. Nguyen",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Dr. Nguyen", "as_of": "2026-02-18T15:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "dr_nguyen_phone",
+      "type": "explicit",
+      "value": "555-0199",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "555-0199", "as_of": "2026-02-18T15:00:00Z", "source_session": 2 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What's my dentist's phone number?",
+    "required_capabilities": ["retrieval", "multi_hop"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "555-0142",
+    "value_history": [
+      { "value": "555-0142", "as_of": "2026-03-12T09:30:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "exact" }
+  },
+  "failure_modes": ["missing_link", "entity_confusion", "wrong_phone_number"],
+  "interference": [
+    {
+      "type": "competing_phone_number",
+      "description": "Dr. Nguyen's phone number (555-0199) could be confused with Dr. Patel's (555-0142)"
+    },
+    {
+      "type": "competing_doctor",
+      "description": "Two different doctors mentioned could cause entity confusion about which is the dentist"
+    }
+  ]
+}

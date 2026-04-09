@@ -1,0 +1,93 @@
+{
+  "scenario_id": "entity-002-role-change",
+  "version": "1.0.0",
+  "category": "entity",
+  "description": "User's friend Alex gets promoted from analyst to VP over the course of several sessions. Tests whether the system tracks the role change on the same entity without creating a duplicate.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My friend Alex works at Meridian Corp as a financial analyst. We grab lunch every couple of weeks." },
+        { "role": "assistant", "content": "Got it -- Alex is a financial analyst at Meridian Corp and a regular lunch friend." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-24T12:30:00Z",
+      "messages": [
+        { "role": "user", "content": "Had lunch with Alex today. He's been swamped preparing quarterly reports at Meridian." },
+        { "role": "assistant", "content": "Sounds like a busy time for him. Quarterly season is always intense for analysts." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-14T18:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Huge news -- Alex just got promoted! He's now VP of Finance at Meridian Corp. Massive jump from analyst." },
+        { "role": "assistant", "content": "That's amazing for Alex! VP of Finance is a big step up from financial analyst. Congratulations to him." },
+        { "role": "user", "content": "Yeah, I'm really proud of him. We're celebrating this weekend." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-28T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Alex is adjusting to his VP role. Says the meetings are nonstop now." },
+        { "role": "assistant", "content": "That's typical for VP-level roles. Hope he finds his rhythm soon." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-10T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I want to get Alex a congratulatory gift for his promotion. What do you know about him?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "alex_meridian",
+      "type": "entity",
+      "value": { "name": "Alex", "company": "Meridian Corp", "role": "VP of Finance", "relationship": "friend" },
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "name": "Alex", "company": "Meridian Corp", "role": "financial analyst", "relationship": "friend" }, "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+        { "value": { "name": "Alex", "company": "Meridian Corp", "role": "VP of Finance", "relationship": "friend" }, "as_of": "2026-02-14T18:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "I want to get Alex a congratulatory gift for his promotion. What do you know about him?",
+    "required_capabilities": ["retrieval", "temporal_reasoning"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": { "name": "Alex", "company": "Meridian Corp", "role": "VP of Finance", "relationship": "friend", "previous_role": "financial analyst" },
+    "value_history": [
+      { "value": { "role": "financial analyst" }, "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+      { "value": { "role": "VP of Finance" }, "as_of": "2026-02-14T18:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "semantic", "keywords": ["VP of Finance", "Meridian Corp", "friend", "promoted from analyst"] }
+  },
+  "failure_modes": ["stale_attribute", "entity_duplication"],
+  "interference": [
+    {
+      "type": "stale_value",
+      "description": "System might return the old role (financial analyst) if it fails to track the update in session 3."
+    },
+    {
+      "type": "entity_duplication",
+      "description": "System might create two separate Alex entities -- one as analyst, one as VP -- instead of updating the same entity."
+    }
+  ]
+}

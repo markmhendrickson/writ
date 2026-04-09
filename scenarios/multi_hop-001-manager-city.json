@@ -1,0 +1,110 @@
+{
+  "scenario_id": "multi_hop-001-manager-city",
+  "version": "1.0.0",
+  "category": "multi_hop",
+  "description": "User mentions their manager by name in one session and the manager's city in another. Probe asks what city the manager lives in, requiring linking both facts.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-08T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My new manager at work is Alex. He started the same week I did." },
+        { "role": "assistant", "content": "Got it, Alex is your manager. Nice that you started around the same time." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-22T14:30:00Z",
+      "messages": [
+        { "role": "user", "content": "Our team is mostly remote. I'm in Portland, and the designer is in Denver." },
+        { "role": "assistant", "content": "Sounds like a distributed team. Portland for you, Denver for the designer." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-10T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Alex lives in Seattle. He keeps inviting us to visit the office there." },
+        { "role": "assistant", "content": "Seattle is a great city. Sounds like Alex is trying to get some in-person time." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-05T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I might fly out for a team offsite next month. We're thinking about meeting at the Portland office." },
+        { "role": "assistant", "content": "That would be convenient since you're already in Portland." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-20T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I want to send Alex a local gift from his area. What city does my manager live in?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "manager_identity",
+      "type": "entity",
+      "value": "Alex",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Alex", "as_of": "2026-01-08T09:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "alex_city",
+      "type": "explicit",
+      "value": "Seattle",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Seattle", "as_of": "2026-02-10T11:00:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "user_city",
+      "type": "explicit",
+      "value": "Portland",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Portland", "as_of": "2026-01-22T14:30:00Z", "source_session": 2 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What city does my manager live in?",
+    "required_capabilities": ["retrieval", "multi_hop"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Seattle",
+    "value_history": [
+      { "value": "Seattle", "as_of": "2026-02-10T11:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": { "method": "exact" }
+  },
+  "failure_modes": ["missing_link", "entity_confusion", "missing_memory"],
+  "interference": [
+    {
+      "type": "competing_city",
+      "description": "User's own city (Portland) and a teammate's city (Denver) could be confused with the manager's city"
+    }
+  ]
+}

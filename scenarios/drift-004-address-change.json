@@ -1,0 +1,134 @@
+{
+  "scenario_id": "drift-004-address-change",
+  "version": "1.0.0",
+  "category": "drift",
+  "description": "User relocates across four cities over the course of a year. Tests whether the system tracks the current home city, preserves the sequence of moves, and avoids confusing past and present addresses.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2025-10-01T08:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Just moved to Austin, TX. I'm renting an apartment in the East Side neighborhood near the lake." },
+        { "role": "assistant", "content": "Welcome to Austin! The East Side near the lake is a great area. Let me know if you need restaurant or activity recommendations." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2025-12-15T19:30:00Z",
+      "messages": [
+        { "role": "user", "content": "My lease in Austin ends in January. I'm relocating to Denver for a new job. Already found a place in the RiNo district." },
+        { "role": "assistant", "content": "Denver's RiNo district is fantastic—lots of breweries and art. When do you officially move?" },
+        { "role": "user", "content": "January 5th is moving day." },
+        { "role": "assistant", "content": "Got it. January 5th move to Denver, RiNo district." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-08T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Made it to Denver! All settled into the new place." },
+        { "role": "assistant", "content": "Glad the move went smoothly. How's the new apartment?" }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-22T13:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Denver was fun but my company is opening a Seattle office and asked me to lead it. I'm heading to Seattle next month." },
+        { "role": "assistant", "content": "That's exciting! Leading a new office is a big opportunity. Do you know which neighborhood you'll be in?" },
+        { "role": "user", "content": "Looking at Capitol Hill or Fremont. Haven't decided yet." },
+        { "role": "assistant", "content": "Both are great neighborhoods. Capitol Hill is more urban and walkable, Fremont is quirky and a bit more laid back." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-05-28T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Moved into my new place in Fremont, Seattle last week. Loving it so far." },
+        { "role": "assistant", "content": "Fremont is a great choice. Welcome to Seattle!" }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-09-10T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Change of plans again. My partner got a job in Portland, so we're moving there at the end of the month. Found a house in the Alberta Arts District." },
+        { "role": "assistant", "content": "Portland's Alberta Arts District is wonderful. That's been quite the year of moves!" }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-10-20T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to file my taxes soon and I lived in multiple states this year. Can you walk me through everywhere I've lived?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "home_city",
+      "type": "mutable",
+      "value": "Portland, OR",
+      "introduced_in": 1,
+      "updated_in": 6,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Austin, TX", "as_of": "2025-10-01T08:00:00Z", "source_session": 1 },
+        { "value": "Denver, CO", "as_of": "2026-01-08T10:00:00Z", "source_session": 3 },
+        { "value": "Seattle, WA", "as_of": "2026-05-28T09:00:00Z", "source_session": 5 },
+        { "value": "Portland, OR", "as_of": "2026-09-10T16:00:00Z", "source_session": 6 }
+      ]
+    },
+    {
+      "id": "neighborhood",
+      "type": "mutable",
+      "value": "Alberta Arts District",
+      "introduced_in": 1,
+      "updated_in": 6,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "East Side, Austin", "as_of": "2025-10-01T08:00:00Z", "source_session": 1 },
+        { "value": "RiNo, Denver", "as_of": "2026-01-08T10:00:00Z", "source_session": 3 },
+        { "value": "Fremont, Seattle", "as_of": "2026-05-28T09:00:00Z", "source_session": 5 },
+        { "value": "Alberta Arts District, Portland", "as_of": "2026-09-10T16:00:00Z", "source_session": 6 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 7,
+    "prompt": "I need to file my taxes soon and I lived in multiple states this year. Can you walk me through everywhere I've lived?",
+    "required_capabilities": ["retrieval", "update_tracking", "history_preservation"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Portland, OR (Alberta Arts District)",
+    "value_history": [
+      { "value": "Austin, TX", "as_of": "2025-10-01T08:00:00Z", "source_session": 1 },
+      { "value": "Denver, CO", "as_of": "2026-01-08T10:00:00Z", "source_session": 3 },
+      { "value": "Seattle, WA", "as_of": "2026-05-28T09:00:00Z", "source_session": 5 },
+      { "value": "Portland, OR", "as_of": "2026-09-10T16:00:00Z", "source_session": 6 }
+    ],
+    "provenance": {
+      "source_session": 6,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Austin", "Denver", "Seattle", "Portland"]
+    }
+  },
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory", "sequence_confusion"],
+  "interference": [
+    {
+      "type": "announced_but_not_yet_moved",
+      "description": "Session 2 announces Denver move but the actual move is confirmed in session 3; session 4 announces Seattle but the move is confirmed in session 5. System must distinguish intent from completed action."
+    },
+    {
+      "type": "neighborhood_considered_but_not_chosen",
+      "description": "Capitol Hill was considered in session 4 but Fremont was chosen in session 5. System should not list Capitol Hill as a place lived."
+    }
+  ]
+}

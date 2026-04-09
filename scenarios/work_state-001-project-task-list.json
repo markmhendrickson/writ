@@ -1,0 +1,160 @@
+{
+  "scenario_id": "work_state-001-project-task-list",
+  "version": "1.0.0",
+  "category": "work_state",
+  "description": "User builds a project task list over multiple sessions, adding, completing, and removing items. Probe asks for current task status.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-06T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm starting a website redesign project. Here are the initial tasks: 1) Design new homepage mockup, 2) Migrate content to new CMS, 3) Set up analytics tracking." },
+        { "role": "assistant", "content": "Got it. Three tasks for the website redesign: homepage mockup, CMS migration, and analytics setup." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-15T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I finished the homepage mockup. Client approved it. Also adding a new task: 4) Implement responsive breakpoints." },
+        { "role": "assistant", "content": "Nice, homepage mockup is done. Updated the list with the new responsive breakpoints task." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-28T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "The CMS migration is about halfway done. Also, the client dropped the analytics tracking requirement — they're handling it internally. Remove that task." },
+        { "role": "assistant", "content": "CMS migration at 50%. Removed analytics tracking from the list." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-08T11:30:00Z",
+      "messages": [
+        { "role": "user", "content": "CMS migration is complete. Adding two more tasks: 5) Performance optimization and 6) Accessibility audit." },
+        { "role": "assistant", "content": "CMS migration done. Added performance optimization and accessibility audit to the list." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-15T16:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Finished the responsive breakpoints yesterday. Good progress." },
+        { "role": "assistant", "content": "Great, responsive breakpoints complete. You're making solid progress." }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-02-25T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Client meeting tomorrow. What's the current status of all my project tasks?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "task_homepage_mockup",
+      "type": "work_state",
+      "value": "completed",
+      "introduced_in": 1,
+      "updated_in": 2,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-01-06T09:00:00Z", "source_session": 1 },
+        { "value": "completed", "as_of": "2026-01-15T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "task_cms_migration",
+      "type": "work_state",
+      "value": "completed",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-01-06T09:00:00Z", "source_session": 1 },
+        { "value": "in_progress (50%)", "as_of": "2026-01-28T10:00:00Z", "source_session": 3 },
+        { "value": "completed", "as_of": "2026-02-08T11:30:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "task_analytics_tracking",
+      "type": "work_state",
+      "value": "removed",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": 3,
+      "should_persist": false,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-01-06T09:00:00Z", "source_session": 1 },
+        { "value": "removed", "as_of": "2026-01-28T10:00:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "task_responsive_breakpoints",
+      "type": "work_state",
+      "value": "completed",
+      "introduced_in": 2,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-01-15T14:00:00Z", "source_session": 2 },
+        { "value": "completed", "as_of": "2026-02-15T16:00:00Z", "source_session": 5 }
+      ]
+    },
+    {
+      "id": "task_performance_optimization",
+      "type": "work_state",
+      "value": "pending",
+      "introduced_in": 4,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-08T11:30:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "task_accessibility_audit",
+      "type": "work_state",
+      "value": "pending",
+      "introduced_in": 4,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "pending", "as_of": "2026-02-08T11:30:00Z", "source_session": 4 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "What's the current status of all my project tasks?",
+    "required_capabilities": ["retrieval", "work_state_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "3 completed (homepage mockup, CMS migration, responsive breakpoints), 2 pending (performance optimization, accessibility audit), 1 removed (analytics tracking)",
+    "value_history": [],
+    "provenance": {
+      "source_session": 5,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["homepage mockup: completed", "CMS migration: completed", "responsive breakpoints: completed", "performance optimization: pending", "accessibility audit: pending"]
+    }
+  },
+  "failure_modes": ["stale_task_state", "missing_task", "phantom_task", "wrong_status"],
+  "interference": [
+    {
+      "type": "removed_task",
+      "description": "Analytics tracking was removed but might still appear in the task list"
+    }
+  ]
+}

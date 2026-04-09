@@ -1,0 +1,99 @@
+{
+  "scenario_id": "work_state-003-multi-step-workflow",
+  "version": "1.0.0",
+  "category": "work_state",
+  "description": "User describes a multi-step content publishing workflow, then modifies the steps over sessions. Probe asks for the current workflow steps.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Here's our blog publishing workflow: Step 1) Write draft, Step 2) Internal review, Step 3) Legal review, Step 4) Publish to staging, Step 5) Publish to production." },
+        { "role": "assistant", "content": "Five-step publishing workflow noted. Draft, internal review, legal review, staging, then production." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-25T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "We're dropping the legal review step. Our new policy says only product announcements need legal review, not blog posts. Remove step 3." },
+        { "role": "assistant", "content": "Removed legal review from the blog workflow. Now it's: draft, internal review, staging, production." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-05T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Actually, let's add an SEO review step after internal review but before staging. Also add a social media preview step right before production." },
+        { "role": "assistant", "content": "Updated: draft, internal review, SEO review, staging, social media preview, production." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-18T11:30:00Z",
+      "messages": [
+        { "role": "user", "content": "One more change: rename 'internal review' to 'editorial review' and swap the order of staging and social media preview. We want social preview first so marketing can prepare while we verify staging." },
+        { "role": "assistant", "content": "Got it. Updated names and order." }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-01T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm documenting our processes for the new hire. What are the current steps in our blog publishing workflow, in order?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "workflow_steps",
+      "type": "work_state",
+      "value": "1) Write draft, 2) Editorial review, 3) SEO review, 4) Social media preview, 5) Publish to staging, 6) Publish to production",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "1) Write draft, 2) Internal review, 3) Legal review, 4) Publish to staging, 5) Publish to production", "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+        { "value": "1) Write draft, 2) Internal review, 3) Publish to staging, 4) Publish to production", "as_of": "2026-01-25T14:00:00Z", "source_session": 2 },
+        { "value": "1) Write draft, 2) Internal review, 3) SEO review, 4) Publish to staging, 5) Social media preview, 6) Publish to production", "as_of": "2026-02-05T10:00:00Z", "source_session": 3 },
+        { "value": "1) Write draft, 2) Editorial review, 3) SEO review, 4) Social media preview, 5) Publish to staging, 6) Publish to production", "as_of": "2026-02-18T11:30:00Z", "source_session": 4 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What are the current steps in our blog publishing workflow, in order?",
+    "required_capabilities": ["retrieval", "work_state_tracking", "sequence_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "1) Write draft, 2) Editorial review, 3) SEO review, 4) Social media preview, 5) Publish to staging, 6) Publish to production",
+    "value_history": [
+      { "value": "1) Write draft, 2) Internal review, 3) Legal review, 4) Publish to staging, 5) Publish to production", "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+      { "value": "1) Write draft, 2) Internal review, 3) Publish to staging, 4) Publish to production", "as_of": "2026-01-25T14:00:00Z", "source_session": 2 },
+      { "value": "1) Write draft, 2) Internal review, 3) SEO review, 4) Publish to staging, 5) Social media preview, 6) Publish to production", "as_of": "2026-02-05T10:00:00Z", "source_session": 3 },
+      { "value": "1) Write draft, 2) Editorial review, 3) SEO review, 4) Social media preview, 5) Publish to staging, 6) Publish to production", "as_of": "2026-02-18T11:30:00Z", "source_session": 4 }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Write draft", "Editorial review", "SEO review", "Social media preview", "Publish to staging", "Publish to production"]
+    }
+  },
+  "failure_modes": ["stale_workflow", "wrong_order", "phantom_step", "missing_rename"],
+  "interference": [
+    {
+      "type": "removed_step",
+      "description": "Legal review was removed but might still appear in the workflow"
+    },
+    {
+      "type": "renamed_step",
+      "description": "Internal review was renamed to editorial review; old name might persist"
+    }
+  ]
+}

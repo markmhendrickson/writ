@@ -1,0 +1,130 @@
+{
+  "scenario_id": "drift-003-relationship-status",
+  "version": "1.0.0",
+  "category": "drift",
+  "description": "User's relationship status evolves across six sessions from single to dating to engaged and back to single. Tests tracking of emotionally sensitive mutable facts and whether the system handles retraction gracefully.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2025-09-10T19:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I've been single for a while now. Any suggestions for weekend activities for someone flying solo?" },
+        { "role": "assistant", "content": "Plenty of great solo options! Hiking, checking out a new museum exhibit, trying a cooking class, or hitting up a local coffee shop with a good book." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2025-12-03T20:30:00Z",
+      "messages": [
+        { "role": "user", "content": "I started seeing someone named Alex about a month ago. Things are going really well." },
+        { "role": "assistant", "content": "That's great to hear! Sounds like things are off to a good start with Alex." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-14T18:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Alex and I moved in together last week. We found a place in the Pearl District." },
+        { "role": "assistant", "content": "Congrats on the move! The Pearl District is a wonderful area. How's the new place?" }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-06-20T21:15:00Z",
+      "messages": [
+        { "role": "user", "content": "Big news: Alex proposed last weekend and I said yes! We're engaged!" },
+        { "role": "assistant", "content": "Congratulations! That's wonderful news. Have you started thinking about wedding plans?" }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-09-08T15:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to talk about something tough. Alex and I called off the engagement. We split up about two weeks ago. I moved out." },
+        { "role": "assistant", "content": "I'm sorry to hear that. Breakups are really difficult, especially after an engagement. I'm here if you need to talk or want help with anything practical." }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-10-15T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm trying to rebuild my social life. Can you remind me what you know about my relationship history this year? I want to make sure I'm being honest with a new therapist about the timeline." }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "relationship_status",
+      "type": "mutable",
+      "value": "single",
+      "introduced_in": 1,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "single", "as_of": "2025-09-10T19:00:00Z", "source_session": 1 },
+        { "value": "dating Alex", "as_of": "2025-12-03T20:30:00Z", "source_session": 2 },
+        { "value": "living with Alex", "as_of": "2026-03-14T18:00:00Z", "source_session": 3 },
+        { "value": "engaged to Alex", "as_of": "2026-06-20T21:15:00Z", "source_session": 4 },
+        { "value": "single", "as_of": "2026-09-08T15:00:00Z", "source_session": 5 }
+      ]
+    },
+    {
+      "id": "partner_name",
+      "type": "mutable",
+      "value": null,
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": 5,
+      "should_persist": false,
+      "previous_values": [
+        { "value": "Alex", "as_of": "2025-12-03T20:30:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "living_arrangement",
+      "type": "mutable",
+      "value": "moved out (lives alone)",
+      "introduced_in": 3,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "living with Alex in Pearl District", "as_of": "2026-03-14T18:00:00Z", "source_session": 3 },
+        { "value": "moved out (lives alone)", "as_of": "2026-09-08T15:00:00Z", "source_session": 5 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Can you remind me what you know about my relationship history this year? I want to make sure I'm being honest with a new therapist about the timeline.",
+    "required_capabilities": ["retrieval", "update_tracking", "history_preservation", "retraction_handling"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "single",
+    "value_history": [
+      { "value": "single", "as_of": "2025-09-10T19:00:00Z", "source_session": 1 },
+      { "value": "dating Alex", "as_of": "2025-12-03T20:30:00Z", "source_session": 2 },
+      { "value": "living with Alex", "as_of": "2026-03-14T18:00:00Z", "source_session": 3 },
+      { "value": "engaged to Alex", "as_of": "2026-06-20T21:15:00Z", "source_session": 4 },
+      { "value": "single (engagement called off)", "as_of": "2026-09-08T15:00:00Z", "source_session": 5 }
+    ],
+    "provenance": {
+      "source_session": 5,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["single", "dating Alex", "moved in", "engaged", "called off", "split up"]
+    }
+  },
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory", "retraction_failure", "insensitive_recall"],
+  "interference": [
+    {
+      "type": "emotional_sensitivity",
+      "description": "The breakup and engagement cancellation are emotionally charged; a system might avoid recalling painful details even when explicitly asked"
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "scenario_id": "constraint-004-updated-constraint",
+  "version": "1.0.0",
+  "category": "constraint",
+  "description": "User was vegetarian, then transitions to vegan. The old constraint (vegetarian) should be superseded by the stricter one (vegan). Tests whether the system applies the updated constraint and does not fall back to the old one.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-05T12:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Just so you know, I'm vegetarian. No meat or fish for me."
+        },
+        {
+          "role": "assistant",
+          "content": "Got it -- vegetarian diet, no meat or fish."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-12T18:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you suggest a quick dinner recipe?"
+        },
+        {
+          "role": "assistant",
+          "content": "How about a caprese salad with fresh mozzarella and tomatoes, or a mushroom and cheese quesadilla?"
+        },
+        {
+          "role": "user",
+          "content": "The quesadilla sounds good. I love cheese."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-26T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Big update: I've gone fully vegan as of this week. No more dairy, eggs, honey -- nothing from animals at all."
+        },
+        {
+          "role": "assistant",
+          "content": "That's a big change! I'll update your dietary preferences to vegan -- no animal products whatsoever."
+        },
+        {
+          "role": "user",
+          "content": "Exactly. I feel great about it."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-02T13:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Made a tofu scramble for breakfast instead of eggs. So good."
+        },
+        {
+          "role": "assistant",
+          "content": "Tofu scramble is a great vegan breakfast. What spices did you use?"
+        },
+        {
+          "role": "user",
+          "content": "Turmeric and nutritional yeast, the classic combo."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-09T17:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm having friends over for brunch this Sunday. Can you help me plan a menu?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "diet_constraint",
+      "type": "latent",
+      "value": "vegan (no animal products: no meat, fish, dairy, eggs, honey)",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "vegetarian (no meat or fish)",
+          "as_of": "2026-01-05T12:00:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "vegan (no animal products at all)",
+          "as_of": "2026-01-26T09:00:00Z",
+          "source_session": 3
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "I'm having friends over for brunch this Sunday. Can you help me plan a menu?",
+    "required_capabilities": [
+      "retrieval",
+      "constraint_application",
+      "temporal_reasoning"
+    ],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "fully vegan brunch menu with no animal products",
+    "value_history": [
+      {
+        "value": "vegetarian (no meat or fish)",
+        "as_of": "2026-01-05T12:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "vegan (no animal products)",
+        "as_of": "2026-01-26T09:00:00Z",
+        "source_session": 3
+      }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "constraint",
+      "keywords": [
+        "vegan",
+        "plant-based",
+        "no animal products"
+      ]
+    },
+    "constraint_check": {
+      "must_contain": [
+        "vegan"
+      ],
+      "must_not_contain": [
+        "cheese",
+        "eggs",
+        "butter",
+        "cream",
+        "honey",
+        "milk",
+        "yogurt",
+        "meat",
+        "fish",
+        "chicken"
+      ]
+    }
+  },
+  "failure_modes": [
+    "constraint_violation",
+    "stale_constraint"
+  ],
+  "interference": [
+    {
+      "type": "stale_value",
+      "description": "In session 2, user enjoyed cheese as a vegetarian. System must recognize the vegan update in session 3 supersedes this and not suggest dairy-containing items."
+    },
+    {
+      "type": "constraint_rollback",
+      "description": "The vegetarian constraint is a subset of vegan. System should apply the stricter vegan constraint, not fall back to the looser vegetarian one."
+    }
+  ]
+}

@@ -93,7 +93,12 @@
       "source_session": 4,
       "source_message_index": 0,
       "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Acme Corp", "Initech", "Globex Corporation", "independent consultant"]
     }
   },
-  "failure_modes": ["stale_memory", "silent_drift", "missing_memory"]
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory"],
+  "interference": []
 }

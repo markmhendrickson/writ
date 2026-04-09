@@ -1,0 +1,164 @@
+{
+  "scenario_id": "provenance-003-conflicting-sources",
+  "version": "1.0.0",
+  "category": "provenance",
+  "description": "User states a fact, then in a later session the assistant confidently states a different value based on a misinterpretation. The user never corrects the assistant. Probe asks which value is authoritative and why. Tests source authority ranking.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My car insurance premium is $1,800 per year."
+        },
+        {
+          "role": "assistant",
+          "content": "Got it — $1,800/year for car insurance."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-05T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you break down my monthly expenses?"
+        },
+        {
+          "role": "assistant",
+          "content": "Sure. Your car insurance comes out to $180 per month, which is $2,160 per year. Along with rent at..."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-01T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What other big expenses do I have?"
+        },
+        {
+          "role": "assistant",
+          "content": "You also have groceries, utilities, and your $2,160 annual car insurance."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-15T16:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I need to compare insurance quotes. Just to confirm, what's my current premium and where did that number come from?"
+        },
+        {
+          "role": "assistant",
+          "content": "Let me check the records."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-01T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "So, what is the correct annual premium and who originally stated it — me or you?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "car_insurance_premium",
+      "type": "explicit",
+      "value": 1800,
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": 1800,
+          "as_of": "2026-01-10T09:00:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "car_insurance_premium_agent_error",
+      "type": "explicit",
+      "value": 2160,
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": false,
+      "previous_values": [
+        {
+          "value": 2160,
+          "as_of": "2026-02-05T14:00:00Z",
+          "source_session": 2
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What is the correct annual premium and who originally stated it — me or you?",
+    "required_capabilities": [
+      "retrieval",
+      "provenance_tracing"
+    ],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": 1800,
+    "value_history": [
+      {
+        "value": 1800,
+        "as_of": "2026-01-10T09:00:00Z",
+        "source_session": 1,
+        "stated_by": "user"
+      },
+      {
+        "value": 2160,
+        "as_of": "2026-02-05T14:00:00Z",
+        "source_session": 2,
+        "stated_by": "assistant"
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "multi_criterion",
+      "criteria": [
+        "correct_value_1800",
+        "identifies_user_as_source",
+        "flags_agent_error"
+      ]
+    }
+  },
+  "failure_modes": [
+    "provenance_loss",
+    "agent_authority_confusion",
+    "silent_drift"
+  ],
+  "interference": [
+    {
+      "type": "agent_miscalculation",
+      "session_id": 2,
+      "description": "Assistant miscomputes $1,800/year as $180/month = $2,160/year and propagates the error"
+    },
+    {
+      "type": "error_propagation",
+      "session_id": 3,
+      "description": "Assistant repeats the erroneous $2,160 figure without user correction"
+    }
+  ]
+}
