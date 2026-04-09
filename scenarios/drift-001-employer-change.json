@@ -1,0 +1,99 @@
+{
+  "scenario_id": "drift-001-employer-change",
+  "version": "1.0.0",
+  "category": "drift",
+  "description": "User changes employer across four sessions. Tests whether the system tracks the current value and whether old values silently disappear.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-15T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I work at Acme Corp as a software engineer." },
+        { "role": "assistant", "content": "Got it, you're a software engineer at Acme Corp." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-01T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I just accepted a new role. I work at Initech now, same position." },
+        { "role": "assistant", "content": "Congratulations on the new role at Initech!" }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-05-20T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Quick update: I moved to Globex Corporation. Got promoted to senior engineer." },
+        { "role": "assistant", "content": "Nice, senior engineer at Globex Corporation." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-08-10T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Started my own consulting practice last month. No longer at Globex." },
+        { "role": "assistant", "content": "That's a big move, going independent!" }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-09-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you remind me of my employment history this year?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "employer",
+      "type": "mutable",
+      "value": "independent consultant",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Acme Corp", "as_of": "2026-01-15T10:00:00Z", "source_session": 1 },
+        { "value": "Initech", "as_of": "2026-03-01T14:00:00Z", "source_session": 2 },
+        { "value": "Globex Corporation", "as_of": "2026-05-20T09:00:00Z", "source_session": 3 },
+        { "value": "independent consultant", "as_of": "2026-08-10T11:00:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "title",
+      "type": "mutable",
+      "value": "consultant",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "software engineer", "as_of": "2026-01-15T10:00:00Z", "source_session": 1 },
+        { "value": "senior engineer", "as_of": "2026-05-20T09:00:00Z", "source_session": 3 },
+        { "value": "consultant", "as_of": "2026-08-10T11:00:00Z", "source_session": 4 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "Can you remind me of my employment history this year?",
+    "required_capabilities": ["retrieval", "update_tracking", "history_preservation"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "independent consultant",
+    "value_history": [
+      { "value": "Acme Corp", "as_of": "2026-01-15T10:00:00Z", "source_session": 1 },
+      { "value": "Initech", "as_of": "2026-03-01T14:00:00Z", "source_session": 2 },
+      { "value": "Globex Corporation", "as_of": "2026-05-20T09:00:00Z", "source_session": 3 },
+      { "value": "independent consultant", "as_of": "2026-08-10T11:00:00Z", "source_session": 4 }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    }
+  },
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory"]
+}

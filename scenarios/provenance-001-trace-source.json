@@ -1,0 +1,105 @@
+{
+  "scenario_id": "provenance-001-trace-source",
+  "version": "1.0.0",
+  "category": "provenance",
+  "description": "User states a financial commitment in one session. Later asks where that number came from. Tests whether the system can trace the fact to its source session and message.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-01T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm planning a trip to Japan. Budget is $5,000." },
+        { "role": "assistant", "content": "Sounds exciting. I'll note a $5,000 budget for your Japan trip." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-15T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "The hotel will cost about $2,000 for the week. Flights are around $1,200." },
+        { "role": "assistant", "content": "Hotel $2,000, flights $1,200. That leaves about $1,800 for activities and food." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My friend Sarah mentioned a ryokan that costs $300/night. I want to do 2 nights there instead of the hotel for those nights." },
+        { "role": "assistant", "content": "That's $600 for 2 nights at the ryokan, which adjusts the hotel cost." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Actually, I realized my total budget is wrong. Where did the $5,000 figure come from? When did I first mention it?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "trip_budget",
+      "type": "explicit",
+      "value": 5000,
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": 5000, "as_of": "2026-02-01T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "hotel_cost",
+      "type": "mutable",
+      "value": 2000,
+      "introduced_in": 2,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": 2000, "as_of": "2026-02-15T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "flight_cost",
+      "type": "explicit",
+      "value": 1200,
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": 1200, "as_of": "2026-02-15T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "ryokan_mention_source",
+      "type": "entity",
+      "value": "Sarah",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 4,
+    "prompt": "Where did the $5,000 figure come from? When did I first mention it?",
+    "required_capabilities": ["retrieval", "provenance_tracing"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": 5000,
+    "value_history": [
+      { "value": 5000, "as_of": "2026-02-01T10:00:00Z", "source_session": 1 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    }
+  },
+  "failure_modes": ["provenance_loss", "missing_memory"]
+}

@@ -1,0 +1,78 @@
+{
+  "scenario_id": "constraint-001-implicit-preference",
+  "version": "1.0.0",
+  "category": "constraint",
+  "description": "User consistently declines dairy-based suggestions across sessions without ever stating an allergy. Tests whether the system infers and applies the latent constraint.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T12:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Can you suggest a lunch spot?" },
+        { "role": "assistant", "content": "How about the Italian place on 5th? They have great pasta and a cheese board." },
+        { "role": "user", "content": "I'll skip the cheese board. Just pasta with marinara." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-17T12:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Making dinner tonight. What should I cook?" },
+        { "role": "assistant", "content": "How about a creamy mushroom risotto? It's quick and satisfying." },
+        { "role": "user", "content": "Can you suggest something without cream? Maybe a stir fry." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-24T12:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Ordering coffee. What's a good drink?" },
+        { "role": "assistant", "content": "A flat white is great, or try a matcha latte." },
+        { "role": "user", "content": "I'll do an oat milk matcha. No regular milk for me." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-01T12:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I'm hosting a dinner party for 6. Can you suggest a menu?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "dairy_avoidance",
+      "type": "latent",
+      "value": "avoids dairy products",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "declined cheese", "as_of": "2026-01-10T12:00:00Z", "source_session": 1 },
+        { "value": "declined cream", "as_of": "2026-01-17T12:00:00Z", "source_session": 2 },
+        { "value": "substitutes oat milk", "as_of": "2026-01-24T12:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 4,
+    "prompt": "I'm hosting a dinner party for 6. Can you suggest a menu?",
+    "required_capabilities": ["retrieval", "constraint_application"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "menu without dairy products",
+    "value_history": [
+      { "value": "declined cheese", "as_of": "2026-01-10T12:00:00Z", "source_session": 1 },
+      { "value": "declined cream", "as_of": "2026-01-17T12:00:00Z", "source_session": 2 },
+      { "value": "substitutes oat milk", "as_of": "2026-01-24T12:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 2,
+      "agent_or_user": "user"
+    }
+  },
+  "failure_modes": ["constraint_violation", "missing_memory"]
+}

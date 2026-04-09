@@ -1,0 +1,79 @@
+{
+  "scenario_id": "temporal-001-as-of-date-query",
+  "version": "1.0.0",
+  "category": "temporal",
+  "description": "User's address changes twice. Probe asks what the address was on a specific past date, not the current value. Tests temporal replay.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My address is 123 Oak Street, Portland, OR." },
+        { "role": "assistant", "content": "Noted, your address is 123 Oak Street, Portland, OR." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-04-15T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I moved last week. New address is 456 Pine Avenue, Seattle, WA." },
+        { "role": "assistant", "content": "Updated. Your address is now 456 Pine Avenue, Seattle, WA." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-07-20T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Moved again. I'm at 789 Elm Boulevard, San Francisco, CA now." },
+        { "role": "assistant", "content": "Got it, 789 Elm Boulevard, San Francisco, CA." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-08-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I need to file an insurance claim for something that happened at my March address. What address did I have in March 2026?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "address",
+      "type": "mutable",
+      "value": "789 Elm Boulevard, San Francisco, CA",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "123 Oak Street, Portland, OR", "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+        { "value": "456 Pine Avenue, Seattle, WA", "as_of": "2026-04-15T14:00:00Z", "source_session": 2 },
+        { "value": "789 Elm Boulevard, San Francisco, CA", "as_of": "2026-07-20T10:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 4,
+    "prompt": "What address did I have in March 2026?",
+    "required_capabilities": ["retrieval", "temporal_replay"],
+    "temporal_query": {
+      "as_of": "2026-03-15T00:00:00Z",
+      "expect_current": false
+    },
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "123 Oak Street, Portland, OR",
+    "value_history": [
+      { "value": "123 Oak Street, Portland, OR", "as_of": "2026-01-10T09:00:00Z", "source_session": 1 },
+      { "value": "456 Pine Avenue, Seattle, WA", "as_of": "2026-04-15T14:00:00Z", "source_session": 2 },
+      { "value": "789 Elm Boulevard, San Francisco, CA", "as_of": "2026-07-20T10:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    }
+  },
+  "failure_modes": ["stale_memory", "silent_drift"]
+}

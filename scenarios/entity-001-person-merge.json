@@ -1,0 +1,95 @@
+{
+  "scenario_id": "entity-001-person-merge",
+  "version": "1.0.0",
+  "category": "entity",
+  "description": "User mentions 'Dr. Kim' and 'Sarah Kim' in separate sessions. Later reveals they are the same person. Tests entity resolution without conflation, and relationship preservation after merge.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-15T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "I have an appointment with Dr. Kim on Thursday. She's my dermatologist." },
+        { "role": "assistant", "content": "Noted, appointment with Dr. Kim (dermatologist) on Thursday." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-22T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Sarah Kim is coming to my dinner party next Saturday. She's a friend from college." },
+        { "role": "assistant", "content": "Got it, Sarah Kim from college is attending your dinner party next Saturday." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-05T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Funny story -- Dr. Kim from my dermatologist visits is actually Sarah Kim from college. Same person. Small world." },
+        { "role": "assistant", "content": "That's a coincidence! Dr. Sarah Kim is both your dermatologist and college friend." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What do you know about Sarah Kim?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "dr_kim",
+      "type": "entity",
+      "value": { "name": "Dr. Kim", "role": "dermatologist", "relationship": "doctor" },
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "name": "Dr. Kim", "role": "dermatologist" }, "as_of": "2026-01-15T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "sarah_kim",
+      "type": "entity",
+      "value": { "name": "Sarah Kim", "role": "college friend", "relationship": "friend" },
+      "introduced_in": 2,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": { "name": "Sarah Kim", "role": "college friend" }, "as_of": "2026-01-22T14:00:00Z", "source_session": 2 }
+      ]
+    },
+    {
+      "id": "kim_merge",
+      "type": "entity",
+      "value": { "name": "Dr. Sarah Kim", "roles": ["dermatologist", "college friend"] },
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 4,
+    "prompt": "What do you know about Sarah Kim?",
+    "required_capabilities": ["retrieval", "multi_hop"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": { "name": "Dr. Sarah Kim", "roles": ["dermatologist", "college friend"] },
+    "value_history": [
+      { "value": { "name": "Dr. Kim", "role": "dermatologist" }, "as_of": "2026-01-15T10:00:00Z", "source_session": 1 },
+      { "value": { "name": "Sarah Kim", "role": "college friend" }, "as_of": "2026-01-22T14:00:00Z", "source_session": 2 },
+      { "value": { "name": "Dr. Sarah Kim", "roles": ["dermatologist", "college friend"] }, "as_of": "2026-02-05T11:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    }
+  },
+  "failure_modes": ["missing_memory", "incorrect_generalization"]
+}

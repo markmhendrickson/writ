@@ -1,0 +1,87 @@
+{
+  "scenario_id": "update-001-conflicting-writes",
+  "version": "1.0.0",
+  "category": "update",
+  "description": "User provides a phone number, then provides a different one, then corrects back to the first. Tests whether the system handles conflicting updates and preserves the correction chain.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-05T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My phone number is 555-0101." },
+        { "role": "assistant", "content": "Got it, your phone number is 555-0101." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-20T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Actually my number changed. It's 555-0202 now." },
+        { "role": "assistant", "content": "Updated your phone number to 555-0202." }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-10T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Wait, I gave you the wrong number last time. My number is still 555-0101. The 0202 number was my work phone, not personal." },
+        { "role": "assistant", "content": "Corrected. Your personal phone is 555-0101, and your work phone is 555-0202." }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-01T11:00:00Z",
+      "messages": [
+        { "role": "user", "content": "What's my personal phone number? And has it changed at any point in our conversations?" }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "personal_phone",
+      "type": "mutable",
+      "value": "555-0101",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "555-0101", "as_of": "2026-01-05T10:00:00Z", "source_session": 1 },
+        { "value": "555-0202", "as_of": "2026-01-20T14:00:00Z", "source_session": 2 },
+        { "value": "555-0101", "as_of": "2026-02-10T09:00:00Z", "source_session": 3 }
+      ]
+    },
+    {
+      "id": "work_phone",
+      "type": "explicit",
+      "value": "555-0202",
+      "introduced_in": 3,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "555-0202", "as_of": "2026-02-10T09:00:00Z", "source_session": 3 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 4,
+    "prompt": "What's my personal phone number? And has it changed at any point in our conversations?",
+    "required_capabilities": ["retrieval", "update_tracking", "history_preservation"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "555-0101",
+    "value_history": [
+      { "value": "555-0101", "as_of": "2026-01-05T10:00:00Z", "source_session": 1 },
+      { "value": "555-0202", "as_of": "2026-01-20T14:00:00Z", "source_session": 2 },
+      { "value": "555-0101", "as_of": "2026-02-10T09:00:00Z", "source_session": 3 }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    }
+  },
+  "failure_modes": ["stale_memory", "silent_drift", "missing_memory"]
+}

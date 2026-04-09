@@ -1,0 +1,30 @@
+{
+  "name": "workmem",
+  "version": "0.1.0",
+  "description": "Benchmark for persistent, usable AI memory — tests write integrity, not just retrieval",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "benchmark": "tsx src/cli.ts",
+    "report": "tsx src/report.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "benchmark",
+    "ai-memory",
+    "agent-memory",
+    "write-integrity",
+    "temporal-state",
+    "provenance"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.1.0"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "scenario_id": "forgetting-001-ephemeral-instructions",
+  "version": "1.0.0",
+  "category": "forgetting",
+  "description": "User gives a one-time instruction that should not persist across sessions, alongside durable facts. Tests selective forgetting vs over-retention.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T10:00:00Z",
+      "messages": [
+        { "role": "user", "content": "My name is Alex Chen. I'm an architect." },
+        { "role": "assistant", "content": "Hi Alex. Noted that you're an architect." }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-12T14:00:00Z",
+      "messages": [
+        { "role": "user", "content": "For this session only, respond in bullet points. I'm reviewing a building plan and need concise feedback." },
+        { "role": "assistant", "content": "- Understood\n- Will use bullet points for this session\n- Ready for the building plan review" }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-15T09:00:00Z",
+      "messages": [
+        { "role": "user", "content": "Tell me what you remember about me and any instructions I've given you." }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "name",
+      "type": "explicit",
+      "value": "Alex Chen",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "Alex Chen", "as_of": "2026-01-10T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "profession",
+      "type": "explicit",
+      "value": "architect",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "architect", "as_of": "2026-01-10T10:00:00Z", "source_session": 1 }
+      ]
+    },
+    {
+      "id": "bullet_point_instruction",
+      "type": "non_memory",
+      "value": "respond in bullet points",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": false,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 3,
+    "prompt": "Tell me what you remember about me and any instructions I've given you.",
+    "required_capabilities": ["retrieval", "selective_forgetting"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": { "name": "Alex Chen", "profession": "architect" },
+    "value_history": [
+      { "value": { "name": "Alex Chen", "profession": "architect" }, "as_of": "2026-01-10T10:00:00Z", "source_session": 1 }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    }
+  },
+  "failure_modes": ["over_retention", "missing_memory"]
+}
