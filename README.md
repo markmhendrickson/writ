@@ -226,6 +226,44 @@ Failures must be attributed to one of three layers:
 - **Agent instruction tuning** -- Test whether agent policies degrade memory over time
 - **Industry transparency** -- Publish comparable results across systems
 
+## How WORKMEM Compares to Existing Benchmarks
+
+Every widely used AI memory benchmark tests retrieval: can the system find a stored fact? None test write integrity: is the stored fact still correct after agents write to it?
+
+### Benchmark Landscape
+
+| Benchmark | Scale | What it tests | What it misses |
+|-----------|-------|---------------|----------------|
+| **[LoCoMo](https://github.com/snap-research/locomo)** (ACL 2024) | ~16K tokens, 10 conversations, 32 sessions | Multi-session QA, event summarization, temporal reasoning | Static corpus. Facts don't change. No write operations. |
+| **[LongMemEval](https://github.com/xiaowu0162/LongMemEval)** (ICLR 2025) | 115K-1.5M tokens, 500 questions | Information extraction, multi-session reasoning, knowledge updates, abstention | Conversations are pre-generated. The system ingests but never writes back. No drift, no provenance, no corruption. |
+| **[BEAM](https://github.com/mohammadtavakoli78/BEAM)** (ICLR 2026) | 128K-10M tokens, 2000 questions | Retrieval at scale where context-stuffing fails. Multi-domain, multi-hop. | Tests whether you can find the needle in 10M tokens. Does not test whether the needle changed since you stored it. |
+| **[AMB](https://agentmemorybenchmark.ai/)** (Vectorize, 2026) | Meta-benchmark aggregating LoCoMo, LongMemEval, LifeBench, PersonaMem | Multi-dataset accuracy, speed, cost comparison across memory systems | Inherits retrieval focus from component datasets. Acknowledges gaps: "none of the current datasets stress memory at scale, none test agentic settings where the agent decides what to retain." |
+| **WORKMEM** | 5-20 sessions per scenario, temporal gaps of days to months | **Write integrity**: drift rate, detectability, temporal replay, provenance, update fidelity, selective forgetting | Higher cost per scenario. Partial human evaluation. Harder to standardize constraint inference scoring. |
+
+### The Gap
+
+All four established benchmarks share a design assumption: the corpus is static. The system ingests conversations, then answers questions about them. Facts do not change between ingestion and query. The system never writes to its own memory in a way that could corrupt previous facts.
+
+This matches how memory systems were evaluated when context windows were small and retrieval was the hard problem. It does not match how memory systems fail in production, where agents write state across sessions, facts change, corrections overwrite previous values, and summarization merges records.
+
+The [DEV Community analysis "What Memory Benchmarks Don't Test"](https://dev.to/esteyang/what-memory-benchmarks-dont-test-h9c) (March 2026) identifies three failure modes LoCoMo cannot catch: confident retrieval of stale beliefs, unresolved contradictions surfaced as equivalent facts, and absence of trust decay over time. WORKMEM tests all three.
+
+### Complementary, Not Competing
+
+WORKMEM does not replace retrieval benchmarks. Good retrieval is necessary. A system that cannot find stored facts will fail WORKMEM too (recall accuracy is a core metric).
+
+The relationship:
+
+| | Retrieval benchmarks (LoCoMo, LongMemEval, BEAM) | WORKMEM |
+|---|---|---|
+| **Question** | Can you find the right fact? | Is the fact you found still correct? |
+| **Failure mode** | Retrieval miss | Silent corruption |
+| **Root cause** | Embedding quality, chunk boundaries, attention degradation | Last-write-wins, summarization loss, provenance gaps |
+| **Architecture tested** | Retrieval pipeline (semantic, BM25, graph, temporal) | State layer (immutability, versioning, provenance) |
+| **Scale threshold** | Matters most at >1M tokens (BEAM's insight) | Matters at first conflicting write (~100K tokens) |
+
+A system can score 95%+ on LongMemEval and fail catastrophically on WORKMEM if it overwrites values on update, loses history, or cannot trace provenance. WORKMEM catches the failures that retrieval benchmarks structurally cannot detect.
+
 ## Design Principles
 
 - **Realism over simplicity** -- Scenarios model real multi-session workflows
