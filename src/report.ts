@@ -1,5 +1,6 @@
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join, extname } from "node:path";
+import { pathToFileURL } from "node:url";
 import type {
   BenchmarkReport,
   AggregateScores,
@@ -235,7 +236,13 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const isReportCliEntry =
+  typeof process.argv[1] === "string" &&
+  import.meta.url === pathToFileURL(process.argv[1]!).href;
+
+if (isReportCliEntry) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
