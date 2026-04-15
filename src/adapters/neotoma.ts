@@ -323,6 +323,10 @@ export class NeotomaAdapter implements MemoryAdapter {
       supports_temporal_replay: true,
       supports_provenance: true,
       supports_abstention: false,
+      supports_source_authority: true,
+      supports_deduplication: false,
+      supports_lifecycle: false,
+      supports_pre_delivery_certification: false,
     };
   }
 

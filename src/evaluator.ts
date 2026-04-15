@@ -156,6 +156,74 @@ async function scoreResult(
 
   const hallucination_detected = checkHallucination(result, scenario);
 
+  let source_authority_intact: boolean | null = null;
+  if (
+    capabilities.supports_source_authority &&
+    scenario.probe.required_capabilities.includes("source_authority_tracking")
+  ) {
+    const authorityEvent = scenario.memory_events.find(
+      (e) => e.source_authority !== undefined
+    );
+    if (authorityEvent) {
+      source_authority_intact = recall_correct;
+    }
+  }
+
+  let dedup_correct: boolean | null = null;
+  if (
+    capabilities.supports_deduplication &&
+    scenario.probe.required_capabilities.includes("deduplication")
+  ) {
+    const expectedCount = scenario.ground_truth.expected_entity_count;
+    if (expectedCount !== undefined) {
+      dedup_correct = recall_correct;
+    }
+  }
+
+  let failure_resilient: boolean | null = null;
+  if (scenario.category === "failure_injection") {
+    failure_resilient = recall_correct;
+  }
+
+  let lifecycle_current_correct: boolean | null = null;
+  let lifecycle_temporal_correct: boolean | null = null;
+  if (
+    scenario.probe.required_capabilities.includes("lifecycle_awareness")
+  ) {
+    lifecycle_current_correct = recall_correct;
+
+    if (scenario.probe.temporal_query?.as_of && capabilities.supports_temporal_replay) {
+      const targetTimestamp = scenario.probe.temporal_query.as_of;
+      const asOfValue = await adapter.getStateAsOf(
+        scenario.memory_events[0]!.id,
+        targetTimestamp
+      );
+      if (asOfValue === null) {
+        lifecycle_temporal_correct = false;
+      } else {
+        const expectedEntry = findExpectedValueAsOf(
+          gt.value_history,
+          targetTimestamp
+        );
+        lifecycle_temporal_correct = expectedEntry
+          ? matchesCurrentValue(asOfValue, expectedEntry.value)
+          : asOfValue !== null;
+      }
+    }
+  }
+
+  let pre_delivery_flagged: boolean | null = null;
+  if (
+    scenario.probe.required_capabilities.includes("pre_delivery_certification")
+  ) {
+    const expectFlag = scenario.ground_truth.expected_integrity_flag;
+    if (expectFlag !== undefined) {
+      pre_delivery_flagged = result.confidence !== null && result.confidence < 1.0
+        ? expectFlag
+        : !expectFlag;
+    }
+  }
+
   return {
     recall_correct,
     recall_score,
@@ -166,6 +234,12 @@ async function scoreResult(
     constraint_respected,
     abstention_correct,
     hallucination_detected,
+    source_authority_intact,
+    dedup_correct,
+    failure_resilient,
+    lifecycle_current_correct,
+    lifecycle_temporal_correct,
+    pre_delivery_flagged,
   };
 }
 
@@ -374,6 +448,26 @@ function detectFailures(
     }
   }
 
+  if (scores.source_authority_intact === false) {
+    failures.push("authority_violation");
+  }
+
+  if (scores.dedup_correct === false) {
+    failures.push("extraction_drift");
+  }
+
+  if (scores.failure_resilient === false) {
+    failures.push("flush_corruption");
+  }
+
+  if (scores.lifecycle_current_correct === false) {
+    failures.push("lifecycle_blindness");
+  }
+
+  if (scores.pre_delivery_flagged === false) {
+    failures.push("certification_miss");
+  }
+
   return [...new Set(failures)];
 }
 
@@ -387,11 +481,23 @@ function attributeFailure(
     return "state";
   }
 
+  if (scores.source_authority_intact === false || scores.lifecycle_current_correct === false || scores.failure_resilient === false) {
+    return "state";
+  }
+
   if (!scores.recall_correct && scores.update_fidelity !== false) {
     return "retrieval";
   }
 
+  if (scores.dedup_correct === false) {
+    return "retrieval";
+  }
+
   if (scores.recall_correct && scores.constraint_respected === false) {
+    return "agent_policy";
+  }
+
+  if (scores.pre_delivery_flagged === false) {
     return "agent_policy";
   }
 
@@ -423,6 +529,11 @@ export function aggregateScores(
       constraint_consistency: 0,
       hallucination_rate: 0,
       abstention_quality: 0,
+      source_authority_integrity: 0,
+      dedup_accuracy: 0,
+      failure_resilience: 0,
+      lifecycle_accuracy: 0,
+      pre_delivery_detection: 0,
       scenarios_evaluated: 0,
     };
   }
@@ -432,7 +543,7 @@ export function aggregateScores(
     target: boolean
   ): number => {
     const applicable = results.filter(
-      (r) => r.scores[field] !== null
+      (r) => r.scores[field] != null
     );
     if (applicable.length === 0) return 0;
     return (
@@ -451,6 +562,11 @@ export function aggregateScores(
     constraint_consistency: count("constraint_respected", true),
     hallucination_rate: count("hallucination_detected", true),
     abstention_quality: count("abstention_correct", true),
+    source_authority_integrity: count("source_authority_intact", true),
+    dedup_accuracy: count("dedup_correct", true),
+    failure_resilience: count("failure_resilient", true),
+    lifecycle_accuracy: count("lifecycle_current_correct", true),
+    pre_delivery_detection: count("pre_delivery_flagged", true),
     scenarios_evaluated: n,
   };
 }

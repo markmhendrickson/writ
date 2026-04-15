@@ -1,0 +1,158 @@
+{
+  "scenario_id": "lifecycle-002-expired-contract",
+  "version": "1.0.0",
+  "category": "lifecycle",
+  "description": "A master services agreement is recorded with a hard calendar end date. Months after expiry, the user checks operational status. The probe asks whether the contract is still active; the system must infer expiration from the stated term, not treat silence as renewal.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2025-06-18T14:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Legal executed our master services agreement with Northwind Logistics today. It is signed and in force through December 31, 2025 inclusive. After that date it expires automatically with no rollover unless we sign an extension."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Northwind master services agreement: in force through 2025-12-31 inclusive; automatic expiry thereafter unless a new extension is signed."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2025-08-04T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Random: what's a polite way to decline a vendor dinner during a conference without burning the relationship?"
+        },
+        {
+          "role": "assistant",
+          "content": "Be specific and time-bound: thank them, cite a conflict (travel, team dinner, early flight), and propose a 20-minute coffee or a short follow-up call the next week."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2025-10-21T17:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Help me tighten this email to finance about why we cannot prepay annual licenses on a net-30 card."
+        },
+        {
+          "role": "assistant",
+          "content": "Lead with cash-flow timing, reference policy, and offer staged milestones or PO-backed invoicing instead of prepay on a card."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-09T13:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We're doing a vendor access audit in March 2026. Remind me: did we ever sign anything that still governs Northwind Logistics after year-end 2025?"
+        },
+        {
+          "role": "assistant",
+          "content": "From the record you provided earlier, the Northwind master services agreement was in force through 2025-12-31 with automatic expiry and no rollover unless extended. If no extension was logged after that, it should not govern 2026 unless a new instrument exists."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-30T10:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: suggest a sprint goal template for a two-week infra hardening sprint."
+        },
+        {
+          "role": "assistant",
+          "content": "Example sprint goal: 'Reduce Sev2 incident drivers by closing top five failure modes in auth and queues, measured by error budget consumption vs last sprint.'"
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-06-12T15:55:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Is the Northwind master services agreement still active as of today?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "northwind_msa_status",
+      "type": "mutable",
+      "value": "expired_after_2025_12_31",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "active_in_force_through_2025_12_31",
+          "as_of": "2025-06-18T14:30:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "expired_after_2025_12_31 (calendar end; no rollover)",
+          "as_of": "2026-01-01T00:00:00Z",
+          "source_session": 1
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Is the Northwind master services agreement still active as of today?",
+    "required_capabilities": ["retrieval", "update_tracking", "lifecycle_awareness"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "no — the agreement expired automatically after 2025-12-31 with no rollover unless extended",
+    "value_history": [
+      {
+        "value": "active through 2025-12-31 per executed MSA; automatic expiry thereafter unless extended",
+        "as_of": "2025-06-18T14:30:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "not active in 2026 absent a logged extension",
+        "as_of": "2026-01-01T00:00:00Z",
+        "source_session": 1
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["no", "expired", "2025-12-31", "not active"],
+      "reject_elements": ["still active", "currently active", "in force now", "governs 2026"],
+      "notes": "Answer must respect explicit end date and time-relative 'as of June 2026' probe."
+    },
+    "lifecycle_history": [
+      { "status": "active", "as_of": "2025-06-18" },
+      { "status": "expired", "as_of": "2026-01-01" }
+    ]
+  },
+  "failure_modes": ["lifecycle_blindness", "stale_memory"],
+  "interference": [
+    {
+      "type": "implicit_renewal_hallucination",
+      "description": "No extension is ever mentioned; systems may incorrectly infer continued validity from ongoing vendor mentions or generic 'agreement' language elsewhere."
+    },
+    {
+      "type": "volume",
+      "description": "Sessions 2–3 and 5 add unrelated text that can dilute retrieval of the single dated legal fact in session 1."
+    }
+  ]
+}

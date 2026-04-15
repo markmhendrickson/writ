@@ -1,0 +1,151 @@
+{
+  "scenario_id": "certification-001-stale-snapshot",
+  "version": "1.0.0",
+  "category": "certification",
+  "description": "A derived snapshot of the Horizon billing rewrite lists Alice Martinez as project lead. In a later session the user transfers leadership to Bob Okonkwo. The probe asks for the current lead. A compliant system must answer Bob while certifying that the authoritative fact changed after the snapshot was materialized, so consumers know cached rollups may be stale.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-03-02T09:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Kickoff note for Horizon billing rewrite: Alice Martinez is the project lead, owns the roadmap, and signs off on scope changes."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Horizon billing rewrite — project lead: Alice Martinez, roadmap owner, scope sign-off."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-09T14:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you outline a three-bullet risks section for the steering deck? Focus on ledger idempotency and reconciliation cutover."
+        },
+        {
+          "role": "assistant",
+          "content": "Risks: (1) idempotency gaps during dual-write, (2) reconciliation drift if batch windows slip, (3) operator training on new exception queues."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-18T11:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Please generate the weekly program snapshot for Horizon: workstreams, owners, and next two milestones. Use whatever lead name we already have on file."
+        },
+        {
+          "role": "assistant",
+          "content": "Snapshot draft — Horizon billing rewrite: project lead Alice Martinez; milestones — (1) dual-write pilot 3/25, (2) shadow reconciliation complete 4/05. I used the on-file lead from kickoff."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-01T16:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Org change: Bob Okonkwo is now project lead for Horizon billing rewrite, effective immediately. Alice rolled off to the payments platform program. Update any canonical owner fields you track."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated canonical owner. Horizon billing rewrite project lead is now Bob Okonkwo effective 2026-04-01; Alice Martinez rolled off to payments platform."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-08T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm about to paste the March program snapshot into a vendor questionnaire. Who is the current project lead for Horizon billing rewrite?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "horizon_billing_rewrite_project_lead",
+      "type": "mutable",
+      "value": "Bob Okonkwo",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "Alice Martinez",
+          "as_of": "2026-03-02T09:15:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "Bob Okonkwo",
+          "as_of": "2026-04-01T16:20:00Z",
+          "source_session": 4
+        }
+      ]
+    },
+    {
+      "id": "horizon_program_snapshot_march_lead_line",
+      "type": "mutable",
+      "value": "Alice Martinez (stale relative to session 4 leadership change)",
+      "introduced_in": 3,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "I'm about to paste the March program snapshot into a vendor questionnaire. Who is the current project lead for Horizon billing rewrite?",
+    "required_capabilities": ["retrieval", "pre_delivery_certification", "update_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Bob Okonkwo",
+    "value_history": [
+      {
+        "value": "Alice Martinez",
+        "as_of": "2026-03-02T09:15:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Bob Okonkwo",
+        "as_of": "2026-04-01T16:20:00Z",
+        "source_session": 4
+      }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Bob Okonkwo", "integrity", "updated", "recent", "change", "snapshot"],
+      "reject_elements": ["Alice Martinez as current lead without staleness warning"],
+      "notes": "Answer must name Bob as current lead and certify that leadership changed after the March snapshot was produced, so the snapshot lead line is stale for current truth."
+    },
+    "expected_integrity_flag": true
+  },
+  "failure_modes": ["certification_miss", "stale_memory"],
+  "interference": [
+    {
+      "type": "stale_snapshot",
+      "description": "Session 3 materialized a program snapshot that still names Alice Martinez. Retrieval that surfaces the snapshot text without crossing against session 4 may return Alice as the lead without a staleness or recency certification."
+    },
+    {
+      "type": "volume",
+      "description": "Sessions 2 and 3 add assistant-generated narrative around risks and milestones that can outrank the short session 4 correction on lexical similarity to 'project lead'."
+    }
+  ]
+}

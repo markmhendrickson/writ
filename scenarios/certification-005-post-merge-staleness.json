@@ -1,0 +1,170 @@
+{
+  "scenario_id": "certification-005-post-merge-staleness",
+  "version": "1.0.0",
+  "category": "certification",
+  "description": "Two CRM entities both labeled Acme Corp are merged in session 4 into a single canonical record with combined fields. A dashboard snapshot from before the merge may still surface the pre-merge duplicate rows. The probe asks for Acme's details; the system must return merged truth and certify that post-merge materialized views or snapshots may lag.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-03-04T09:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "CRM hygiene note: we have duplicate vendor stubs for Acme Corp. Record A: Acme Corp, DUNS 123456789, billing email ap@acmecorp.example, primary contact Jordan Lee. Record B is a typo-heavy stub with the same legal name but wrong DUNS and old AP alias."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted duplicate Acme Corp stubs: Record A — DUNS 123456789, billing ap@acmecorp.example, contact Jordan Lee; Record B — same legal name, incorrect DUNS, stale AP alias."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-11T14:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Export the vendor risk blurb for Acme from Record A only: emphasize net-45 terms and SOC2 attestation on file."
+        },
+        {
+          "role": "assistant",
+          "content": "Vendor risk blurb (Record A): Acme Corp — payment terms net-45; SOC 2 Type II attestation on file; primary contact Jordan Lee."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-19T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Generate yesterday's CRM digest snapshot text: top five accounts by open AR. Pull Acme rows as they exist in the warehouse today."
+        },
+        {
+          "role": "assistant",
+          "content": "Digest snapshot excerpt: Acme Corp appears twice in warehouse slice (IDs CRM-7781 and CRM-9012) with conflicting DUNS; AR totals split across rows pending data steward cleanup."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-26T16:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Data steward action complete: merged Acme Corp duplicates CRM-7781 and CRM-9012 into canonical CRM-7781. Canonical fields: legal name Acme Corp, DUNS 123456789, billing ap@acmecorp.example, AP alias still finance-ap@acmecorp.example from the second record, terms net-45, primary contact Jordan Lee, SOC2 Type II on file. CRM-9012 is retired."
+        },
+        {
+          "role": "assistant",
+          "content": "Merge recorded. Canonical Acme Corp entity CRM-7781: DUNS 123456789, billing ap@acmecorp.example, finance-ap@acmecorp.example alias retained, net-45, Jordan Lee primary, SOC2 on file; duplicate CRM-9012 retired."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-02T11:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: suggest a title for a lunch-and-learn on idempotent payout retries."
+        },
+        {
+          "role": "assistant",
+          "content": "Title idea: 'Idempotent Payout Retries: Safe Patterns When Money Moves Twice by Accident.'"
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-04-15T09:50:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm filling out a compliance questionnaire. What are Acme Corp's vendor details as we understand them now—legal identifiers, contacts, terms, and attestations?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "acme_corp_canonical_crm_id",
+      "type": "mutable",
+      "value": "CRM-7781",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "CRM-7781 (primary) vs CRM-9012 (duplicate stub)",
+          "as_of": "2026-03-04T09:30:00Z",
+          "source_session": 1
+        }
+      ]
+    },
+    {
+      "id": "acme_corp_merged_vendor_profile",
+      "type": "mutable",
+      "value": "Legal: Acme Corp; DUNS 123456789; billing ap@acmecorp.example; alias finance-ap@acmecorp.example; net-45; primary contact Jordan Lee; SOC2 Type II on file; retired duplicate CRM-9012",
+      "introduced_in": 4,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    },
+    {
+      "id": "acme_crm_digest_snapshot_pre_merge",
+      "type": "mutable",
+      "value": "Duplicate Acme rows CRM-7781 and CRM-9012 with conflicting DUNS (stale after merge)",
+      "introduced_in": 3,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "I'm filling out a compliance questionnaire. What are Acme Corp's vendor details as we understand them now—legal identifiers, contacts, terms, and attestations?",
+    "required_capabilities": ["retrieval", "pre_delivery_certification", "entity_resolution"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Acme Corp — DUNS 123456789; billing ap@acmecorp.example; retained alias finance-ap@acmecorp.example; net-45; primary contact Jordan Lee; SOC 2 Type II attestation on file; canonical CRM id CRM-7781; duplicate CRM-9012 retired",
+    "value_history": [
+      {
+        "value": "Two duplicate stubs CRM-7781 (correct DUNS and contact) and CRM-9012 (erroneous DUNS, stale alias)",
+        "as_of": "2026-03-04T09:30:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Merged canonical profile on CRM-7781 with combined fields; CRM-9012 retired",
+        "as_of": "2026-03-26T16:45:00Z",
+        "source_session": 4
+      }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["123456789", "Jordan Lee", "net-45", "SOC", "CRM-7781", "merge", "duplicate", "stale", "snapshot", "materialized"],
+      "reject_elements": ["two active Acme rows as current truth", "CRM-9012 as non-retired canonical"],
+      "notes": "Must summarize merged canonical vendor facts and certify that pre-merge digest or warehouse snapshots (e.g., session 3) can remain stale until backfills complete."
+    },
+    "expected_integrity_flag": true
+  },
+  "failure_modes": ["certification_miss", "stale_memory"],
+  "interference": [
+    {
+      "type": "post_merge_snapshot_staleness",
+      "description": "Session 3 captured a digest snapshot showing duplicate Acme rows. After the merge in session 4, any retrieval path that surfaces that snapshot without merge-aware certification can misstate current vendor topology."
+    },
+    {
+      "type": "volume",
+      "description": "Session 2 narrows narrative to Record A only, which omits the finance-ap alias that becomes part of the merged canonical record, tempting incomplete answers."
+    }
+  ]
+}

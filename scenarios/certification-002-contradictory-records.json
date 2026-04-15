@@ -1,0 +1,171 @@
+{
+  "scenario_id": "certification-002-contradictory-records",
+  "version": "1.0.0",
+  "category": "certification",
+  "description": "The user states an approved initiative budget as $50K, then later states it was increased to $75K. Both verbatim budget facts remain retrievable. The probe asks for the budget. The system must return $75K as current truth while certifying that conflicting budget records existed and were reconciled by temporal and user authority ordering.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-08T13:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We're spinning up the Atlas search relevance track for Q1. Can you suggest a lightweight kickoff checklist?"
+        },
+        {
+          "role": "assistant",
+          "content": "Kickoff checklist: charter one-pager, success metrics, data access paths, evaluation harness stub, weekly demo cadence, risk log."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-15T15:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Finance signed off the Atlas initiative budget at $50K for the quarter. That's the official cap for contractors and experiments."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Atlas initiative approved budget: $50K for the quarter (finance sign-off), cap for contractors and experiments."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-22T09:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Draft a neutral Slack update for eng: we're prioritizing query latency over recall for the first milestone."
+        },
+        {
+          "role": "assistant",
+          "content": "Slack draft: 'Milestone 1 focus: improve p95 query latency; we'll defer broad recall tuning until we have stable latency baselines.'"
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-04T11:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Heads up for planning: the Atlas initiative budget was increased to $75K after we added the vendor evaluation workstream. Treat $75K as the new official cap going forward."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated. Atlas initiative budget increased to $75K including vendor evaluation workstream; use $75K as official cap going forward."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-11T16:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: what's a sane default retention for raw search click logs if GDPR is in scope?"
+        },
+        {
+          "role": "assistant",
+          "content": "Many teams default to 30–90 days for raw clicks with pseudonymized keys, shorter if DPIAs require minimization; pair with aggregated rollups for longer analytics horizons."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-02-19T08:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Before I lock the procurement worksheet, what's the Atlas initiative budget I should enter?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "atlas_initiative_budget_usd",
+      "type": "mutable",
+      "value": "75000",
+      "introduced_in": 2,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "50000",
+          "as_of": "2026-01-15T15:30:00Z",
+          "source_session": 2
+        },
+        {
+          "value": "75000",
+          "as_of": "2026-02-04T11:45:00Z",
+          "source_session": 4
+        }
+      ]
+    },
+    {
+      "id": "atlas_budget_statement_50k_verbatim",
+      "type": "mutable",
+      "value": "Budget is $50K for the quarter (finance sign-off)",
+      "introduced_in": 2,
+      "updated_in": 2,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    },
+    {
+      "id": "atlas_budget_statement_75k_verbatim",
+      "type": "mutable",
+      "value": "Budget was increased to $75K (vendor evaluation workstream)",
+      "introduced_in": 4,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Before I lock the procurement worksheet, what's the Atlas initiative budget I should enter?",
+    "required_capabilities": ["retrieval", "pre_delivery_certification", "conflict_detection"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "$75K",
+    "value_history": [
+      {
+        "value": "$50K",
+        "as_of": "2026-01-15T15:30:00Z",
+        "source_session": 2
+      },
+      {
+        "value": "$75K",
+        "as_of": "2026-02-04T11:45:00Z",
+        "source_session": 4
+      }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["75000", "75", "$75", "conflict", "contradict", "both", "50", "updated", "later"],
+      "reject_elements": ["$50K as sole current budget without noting supersession or conflict"],
+      "notes": "Must return $75K as the worksheet value and certify that an earlier $50K record existed (contradiction resolved by later user statement), not silently merge or pick arbitrarily."
+    },
+    "expected_integrity_flag": true
+  },
+  "failure_modes": ["certification_miss", "stale_memory"],
+  "interference": [
+    {
+      "type": "contradictory_records",
+      "description": "Two user-stated budget figures remain verbatim in memory ($50K in session 2, $75K in session 4). Flat retrieval can return the wrong figure or an average without temporal reconciliation or an explicit integrity flag."
+    }
+  ]
+}

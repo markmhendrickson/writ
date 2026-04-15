@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { loadAllScenarios, validateScenario } from "../../src/loader.js";
 import type { Scenario, ScenarioCategory } from "../../src/types.js";
 
-const ALL_CATEGORIES: ScenarioCategory[] = [
+const ORIGINAL_CATEGORIES: ScenarioCategory[] = [
   "drift",
   "temporal",
   "provenance",
@@ -13,6 +13,20 @@ const ALL_CATEGORIES: ScenarioCategory[] = [
   "multi_hop",
   "abstention",
   "work_state",
+];
+
+const EXTENDED_CATEGORIES: ScenarioCategory[] = [
+  "closure",
+  "trust_hierarchy",
+  "extraction_drift",
+  "failure_injection",
+  "lifecycle",
+  "certification",
+];
+
+const ALL_CATEGORIES: ScenarioCategory[] = [
+  ...ORIGINAL_CATEGORIES,
+  ...EXTENDED_CATEGORIES,
 ];
 
 describe("scenario dataset validation", () => {
@@ -116,8 +130,20 @@ describe("scenario dataset validation", () => {
       counts[s.category] = (counts[s.category] ?? 0) + 1;
     }
 
-    for (const cat of ALL_CATEGORIES) {
+    for (const cat of ORIGINAL_CATEGORIES) {
       expect(counts[cat] ?? 0).toBeGreaterThanOrEqual(5);
+    }
+  });
+
+  it("at least 2 scenarios per extended category", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const counts: Partial<Record<ScenarioCategory, number>> = {};
+    for (const s of scenarios) {
+      counts[s.category] = (counts[s.category] ?? 0) + 1;
+    }
+
+    for (const cat of EXTENDED_CATEGORIES) {
+      expect(counts[cat] ?? 0).toBeGreaterThanOrEqual(2);
     }
   });
 
@@ -142,5 +168,62 @@ describe("scenario dataset validation", () => {
     scenarios = scenarios ?? (await loadAllScenarios());
     const ids = scenarios.map((s) => s.scenario_id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("trust_hierarchy scenarios have source_authority_tracking capability", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const th = scenarios.filter((s) => s.category === "trust_hierarchy");
+    for (const s of th) {
+      expect(s.probe.required_capabilities).toContain("source_authority_tracking");
+    }
+  });
+
+  it("trust_hierarchy scenarios have source_authority on memory events", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const th = scenarios.filter((s) => s.category === "trust_hierarchy");
+    for (const s of th) {
+      const hasAuthority = s.memory_events.some((e) => e.source_authority !== undefined);
+      expect(hasAuthority).toBe(true);
+    }
+  });
+
+  it("extraction_drift scenarios have deduplication capability", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const ed = scenarios.filter((s) => s.category === "extraction_drift");
+    for (const s of ed) {
+      expect(s.probe.required_capabilities).toContain("deduplication");
+    }
+  });
+
+  it("extraction_drift scenarios have expected_entity_count", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const ed = scenarios.filter((s) => s.category === "extraction_drift");
+    for (const s of ed) {
+      expect(s.ground_truth.expected_entity_count).toBeDefined();
+    }
+  });
+
+  it("lifecycle scenarios have lifecycle_awareness capability", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const lc = scenarios.filter((s) => s.category === "lifecycle");
+    for (const s of lc) {
+      expect(s.probe.required_capabilities).toContain("lifecycle_awareness");
+    }
+  });
+
+  it("certification scenarios have pre_delivery_certification capability", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const cert = scenarios.filter((s) => s.category === "certification");
+    for (const s of cert) {
+      expect(s.probe.required_capabilities).toContain("pre_delivery_certification");
+    }
+  });
+
+  it("certification scenarios have expected_integrity_flag", async () => {
+    scenarios = scenarios ?? (await loadAllScenarios());
+    const cert = scenarios.filter((s) => s.category === "certification");
+    for (const s of cert) {
+      expect(s.ground_truth.expected_integrity_flag).toBeDefined();
+    }
   });
 });

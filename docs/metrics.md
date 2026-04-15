@@ -114,6 +114,66 @@ The check builds a set of all known values (current value, historical values, al
 
 ---
 
+---
+
+### Source Authority Integrity
+
+**Definition:** Whether the system prevents lower-authority sources from silently overwriting higher-authority facts. A user-stated fact overwritten by an LLM summary is scored as a failure.
+
+**Formula:** `source_authority_integrity = count(source_authority_intact = true) / count(scenarios requiring source_authority_tracking)`
+
+Only evaluated when `source_authority_tracking` is in `probe.required_capabilities`. The check verifies that the system returns the value from the highest-authority source, not the most recent write.
+
+Requires adapter capability: `supports_source_authority`.
+
+---
+
+### Dedup Accuracy
+
+**Definition:** Whether the system correctly consolidates near-duplicate entities from varied extraction phrasing into a single canonical entity.
+
+**Formula:** `dedup_accuracy = count(dedup_correct = true) / count(scenarios requiring deduplication)`
+
+Only evaluated when `deduplication` is in `probe.required_capabilities`. Scenarios specify `expected_entity_count` in ground truth; the system should not create more entities than expected.
+
+Requires adapter capability: `supports_deduplication`.
+
+---
+
+### Failure Resilience
+
+**Definition:** The fraction of failure injection scenarios where the system either prevented data corruption or detected and flagged the issue. Tests resilience to flush failures, stale tool outputs, concurrent writes, and session corruption.
+
+**Formula:** `failure_resilience = count(failure_resilient = true) / count(failure_injection scenarios)`
+
+Evaluated for all scenarios in the `failure_injection` category.
+
+---
+
+### Lifecycle Accuracy
+
+**Definition:** Whether the system can distinguish between active, superseded, expired, and reinstated facts. A system that returns a superseded or expired fact as current fails.
+
+**Formula:** `lifecycle_accuracy = count(lifecycle_current_correct = true) / count(scenarios requiring lifecycle_awareness)`
+
+Only evaluated when `lifecycle_awareness` is in `probe.required_capabilities`. Scenarios include `lifecycle_history` in ground truth showing state transitions.
+
+Requires adapter capability: `supports_lifecycle`.
+
+---
+
+### Pre-Delivery Detection
+
+**Definition:** Whether the system flags integrity issues (staleness, conflicts, temporal mismatches) before delivering results, rather than silently returning potentially incorrect data.
+
+**Formula:** `pre_delivery_detection = count(pre_delivery_flagged = true) / count(scenarios requiring pre_delivery_certification)`
+
+Only evaluated when `pre_delivery_certification` is in `probe.required_capabilities`. Scenarios specify `expected_integrity_flag` in ground truth.
+
+Requires adapter capability: `supports_pre_delivery_certification`.
+
+---
+
 ## Diagnostic Scores
 
 ### Recall Score (per-scenario)

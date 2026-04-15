@@ -1,0 +1,165 @@
+{
+  "scenario_id": "failure_injection-004-session-reset-skips-flush",
+  "version": "1.0.0",
+  "category": "failure_injection",
+  "description": "Across several days the user incrementally locks in durable requirements for the OpenClaw Hermes bridge MVP. Each night an automated daily reset archives chat transcripts and rotates session tokens but incorrectly skips the memory flush job when the reset flag is set. A fresh morning session therefore has no local transcript history even though the requirements should all be present in durable memory. The probe must enumerate the full requirement set without gaps.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-04-01T10:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hermes bridge MVP requirements session 1 of several. Requirement A: all tool calls must be idempotent with explicit idempotency keys. Requirement B: secrets never touch model context—only opaque handles. Capture both as durable project requirements."
+        },
+        {
+          "role": "assistant",
+          "content": "Captured durable MVP requirements A and B: idempotent tool calls with explicit keys; secrets only as opaque handles outside model context."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-04-02T15:22:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Continuing Hermes bridge MVP requirements. Requirement C: every write path must be transactional with rollback on partial failure. Requirement D: structured memory updates must include provenance (session id, message index, actor). Append to the same durable requirements list."
+        },
+        {
+          "role": "assistant",
+          "content": "Appended. Requirement C: transactional writes with rollback on partial failure. Requirement D: provenance on structured memory updates (session id, message index, actor)."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-04-03T08:47:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Bridge MVP requirements day 3. Requirement E: degraded mode must read-only when the memory backend is unhealthy—no silent lossy merges. Requirement F: concurrent sessions must serialize conflicting writes or surface conflicts explicitly. Store with the prior Hermes requirements as one authoritative set."
+        },
+        {
+          "role": "assistant",
+          "content": "Stored. Requirement E: read-only degraded mode when memory backend is unhealthy, no silent lossy merges. Requirement F: serialize conflicting writes or surface conflicts explicitly, alongside earlier requirements A–D."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-04T19:13:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hermes bridge MVP requirements wrap-up for the week. Requirement G: nightly backups of the memory index with checksum verification before swap. This completes the MVP requirements bundle—treat A through G as the full authoritative list."
+        },
+        {
+          "role": "assistant",
+          "content": "Locked in. Full Hermes bridge MVP requirement set is now A through G, including nightly memory index backups with checksum verification before swap."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-05T12:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Off-topic: suggest three concise titles for a blog post about deterministic agent memory—not about our requirements list."
+        },
+        {
+          "role": "assistant",
+          "content": "Possible titles: 'Determinism as a Safety Boundary for Agent Memory', 'Why Mutable Memory Needs Provenance, Not Vibes', 'Replayable Sessions: Building Trust in Tool-Using Agents'."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-04-06T07:01:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Morning after the automated daily reset rotated my transcript archive again. I can't see last week's chat in this UI. For audit: list all Hermes bridge MVP requirements A–G exactly as stored in durable memory."
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "hermes_bridge_mvp_requirements",
+      "type": "mutable",
+      "value": "A: idempotent tool calls with explicit idempotency keys; B: secrets only as opaque handles outside model context; C: transactional writes with rollback on partial failure; D: provenance on structured memory updates (session id, message index, actor); E: read-only degraded mode when memory backend is unhealthy with no silent lossy merges; F: serialize conflicting writes or surface conflicts explicitly; G: nightly memory index backups with checksum verification before swap",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "A: idempotent tool calls with explicit idempotency keys; B: secrets only as opaque handles outside model context",
+          "as_of": "2026-04-01T10:05:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "A–B plus C: transactional writes with rollback on partial failure; D: provenance on structured memory updates (session id, message index, actor)",
+          "as_of": "2026-04-02T15:22:00Z",
+          "source_session": 2
+        },
+        {
+          "value": "A–D plus E: read-only degraded mode when memory backend is unhealthy with no silent lossy merges; F: serialize conflicting writes or surface conflicts explicitly",
+          "as_of": "2026-04-03T08:47:00Z",
+          "source_session": 3
+        },
+        {
+          "value": "A–F plus G: nightly memory index backups with checksum verification before swap",
+          "as_of": "2026-04-04T19:13:00Z",
+          "source_session": 4
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Morning after the automated daily reset rotated my transcript archive again. I can't see last week's chat in this UI. For audit: list all Hermes bridge MVP requirements A–G exactly as stored in durable memory.",
+    "required_capabilities": ["retrieval", "failure_resilience"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "A: idempotent tool calls with explicit idempotency keys; B: secrets only as opaque handles outside model context; C: transactional writes with rollback on partial failure; D: provenance on structured memory updates (session id, message index, actor); E: read-only degraded mode when memory backend is unhealthy with no silent lossy merges; F: serialize conflicting writes or surface conflicts explicitly; G: nightly memory index backups with checksum verification before swap",
+    "value_history": [],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": [
+        "idempotent",
+        "idempotency",
+        "opaque",
+        "transactional",
+        "rollback",
+        "provenance",
+        "read-only",
+        "degraded",
+        "conflict",
+        "backup",
+        "checksum"
+      ],
+      "reject_elements": [],
+      "notes": "Exact ordering or punctuation may vary, but all seven requirement themes A–G must appear without dropping sessions lost to transcript rotation."
+    }
+  },
+  "failure_modes": ["flush_corruption", "stale_memory"],
+  "interference": [
+    {
+      "type": "transcript_loss",
+      "description": "Models daily reset flows that archive or wipe local conversation history while a buggy scheduler skips the durable memory flush, leaving the model with an empty recent window despite a complete requirement chain in cold storage."
+    },
+    {
+      "type": "volume",
+      "description": "Session 5 adds unrelated creative content that can dominate retrieval if the system overweights recent tokens instead of structured durable requirements."
+    }
+  ]
+}

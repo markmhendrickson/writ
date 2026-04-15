@@ -1,0 +1,119 @@
+{
+  "scenario_id": "certification-004-clean-delivery",
+  "version": "1.0.0",
+  "category": "certification",
+  "description": "A single durable fact—the canonical incident channel for the payments platform—is stated once and queried later with no intervening updates, conflicts, or merge events. The system should return the value and pass pre-delivery certification with no integrity warning.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-10T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We're standardizing incident comms. For the payments platform, the canonical Slack channel is #payments-incidents — that's the only channel paging should post to."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Payments platform canonical incident Slack channel: #payments-incidents; paging should target only that channel."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-14T15:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Give me three concise bullets for why we prefer channel-based paging over email for sev1."
+        },
+        {
+          "role": "assistant",
+          "content": "Faster ack loops and thread discipline; mobile push parity; easier attachment of graphs and command output without inbox clutter."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-21T09:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Draft a one-sentence note for new hires: where to find the on-call rotation."
+        },
+        {
+          "role": "assistant",
+          "content": "On-call rotations live in PagerDuty; follow the linked runbooks from the team wiki home page."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-05T11:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: is it worth adding client-side retries for idempotent POSTs if our gateway already retries 5xx?"
+        },
+        {
+          "role": "assistant",
+          "content": "Often yes with bounded backoff and jitter to absorb brief regional blips the gateway may not see; keep retries idempotent and cap total latency budget."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-02T14:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Quick check before I update the runbook: what's the canonical incident Slack channel for the payments platform?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "payments_platform_incident_slack_channel",
+      "type": "mutable",
+      "value": "#payments-incidents",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "Quick check before I update the runbook: what's the canonical incident Slack channel for the payments platform?",
+    "required_capabilities": ["retrieval", "pre_delivery_certification"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "#payments-incidents",
+    "value_history": [
+      {
+        "value": "#payments-incidents",
+        "as_of": "2026-02-10T10:00:00Z",
+        "source_session": 1
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact",
+      "notes": "Answer must be #payments-incidents. Pre-delivery certification should report no staleness, conflict, or merge caveats."
+    },
+    "expected_integrity_flag": false
+  },
+  "failure_modes": ["certification_miss", "stale_memory"],
+  "interference": [
+    {
+      "type": "volume",
+      "description": "Sessions 2–4 contain general incident-handling and reliability discussion that mentions Slack abstractly but not an alternate payments incident channel, tempting spurious cross-links."
+    }
+  ]
+}

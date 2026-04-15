@@ -1,0 +1,151 @@
+{
+  "scenario_id": "failure_injection-003-stale-context-window",
+  "version": "1.0.0",
+  "category": "failure_injection",
+  "description": "A vendor contact's phone number is introduced early, then updated in a later session after a verified change. A buggy flush rewrites the wrong offset in the serialized memory buffer, so the context window in the following session still embeds the stale digits from session 1 even though durable truth is the new number. The probe must return the updated phone, not the stale window copy.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-03-01T15:06:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Onboarding vendor contact for Hermes spare parts: Dana Morales, logistics lead at Northwind Components. Primary phone is +1-415-555-0142. Please keep that in durable memory for shipment escalations."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded Dana Morales at Northwind Components with primary phone +1-415-555-0142 for logistics escalations."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-02T11:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you sanity-check this SQL migration for nullable foreign keys? Paste only review comments, no contact lookups."
+        },
+        {
+          "role": "assistant",
+          "content": "Add explicit ON DELETE behavior or document why null is allowed; consider a partial index if you query non-null rows heavily; verify ORM handles null FK writes idempotently."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-04T09:58:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Northwind rotated Dana's corporate mobile on their side. Verified through their signed PDF. Update Dana Morales' primary phone to +1-415-555-0199 everywhere in memory—this supersedes the old +1-415-555-0142 entry completely."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated. Dana Morales primary phone is now +1-415-555-0199, superseding +1-415-555-0142 for escalation use."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-04T10:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm about to paste Dana's contact card from an old export for a side-by-side diff—ignore anything in the paste that contradicts what you already have stored as canonical."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll treat your stored canonical contact fields as source of truth and use the paste only for structural comparison, not for overwriting verified updates."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-05T14:17:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: recommend a Grafana panel layout for Hermes queue lag and error rate side by side."
+        },
+        {
+          "role": "assistant",
+          "content": "Use two stacked time series sharing the same time axis: lag p95 with alert thresholds, error rate with burn-rate style annotations. Add a small table for top failing consumers."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-07T16:02:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the Northwind escalation runbook line item, what is Dana Morales' current primary phone number on file?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "dana_morales_primary_phone",
+      "type": "mutable",
+      "value": "+1-415-555-0199",
+      "introduced_in": 1,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "+1-415-555-0142",
+          "as_of": "2026-03-01T15:06:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "+1-415-555-0199",
+          "as_of": "2026-03-04T09:58:00Z",
+          "source_session": 3
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "For the Northwind escalation runbook line item, what is Dana Morales' current primary phone number on file?",
+    "required_capabilities": ["retrieval", "failure_resilience"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "+1-415-555-0199",
+    "value_history": [
+      {
+        "value": "+1-415-555-0142",
+        "as_of": "2026-03-01T15:06:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "+1-415-555-0199",
+        "as_of": "2026-03-04T09:58:00Z",
+        "source_session": 3
+      }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
+    }
+  },
+  "failure_modes": ["flush_corruption", "stale_memory"],
+  "interference": [
+    {
+      "type": "misaligned_write",
+      "description": "Simulates a corrupted or mis-offset memory flush where the updated phone is persisted logically but the context assembler still injects the older +1-415-555-0142 string from session 1 when building the session 4 window."
+    },
+    {
+      "type": "contradictory_paste",
+      "description": "Session 4 explicitly warns that an attached export may contradict canonical memory, mirroring real OpenClaw/Hermes cases where stale RAG chunks compete with structured durable fields."
+    }
+  ]
+}

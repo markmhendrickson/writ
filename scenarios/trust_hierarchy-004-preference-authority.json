@@ -1,0 +1,182 @@
+{
+  "scenario_id": "trust_hierarchy-004-preference-authority",
+  "version": "1.0.0",
+  "category": "trust_hierarchy",
+  "description": "The user states a durable UI preference (dark mode across tools). Later, during a code review discussion, an assistant message speculates the user seems to use a light theme based on screenshots and editor chrome. The probe asks for the user's theme preference; the explicit user preference must beat speculative extraction from context.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-01T17:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you help me outline a rollout plan for migrating our design tokens repo to a new package name without breaking consumers?"
+        },
+        {
+          "role": "assistant",
+          "content": "Outline: add compatibility exports under the old package, publish dual packages for one minor cycle, provide codemods, communicate deprecation timeline, then remove old entrypoints after adoption metrics threshold."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-08T09:25:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Personal preference note for any tooling recommendations you give me going forward: I prefer dark mode for all my tools (terminals, editors, browsers). Please assume dark UI unless I explicitly say otherwise."
+        },
+        {
+          "role": "assistant",
+          "content": "Got it. I'll assume dark mode by default for tooling suggestions unless you tell me otherwise."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-15T14:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated work: I need a crisp explanation of why we should keep pagination instead of infinite scroll on the admin audit log."
+        },
+        {
+          "role": "assistant",
+          "content": "Pagination gives stable deep links, predictable performance, and easier export/print behavior; infinite scroll complicates jumping to a specific time range and can hide totals."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-22T11:50:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Help me draft a comment on a PR that asks for better error messages without sounding nitpicky."
+        },
+        {
+          "role": "assistant",
+          "content": "Frame it as user impact: suggest concrete examples of failures, propose message text, and offer to pair for 10 minutes if they want help wording."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-01T16:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What's a reasonable default retention policy for application logs in a SOC2-oriented SaaS?"
+        },
+        {
+          "role": "assistant",
+          "content": "Many teams keep hot logs 7–30 days, warm storage 90–180 days, and cold/archive per compliance needs. Pair retention with access controls and documented deletion procedures."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-11T13:35:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Here's a screenshot from my code review environment showing the diff. Does this naming convention look consistent to you?"
+        },
+        {
+          "role": "assistant",
+          "content": "The naming looks mostly consistent. Separately, the screenshot suggests you may be using a light theme in your editor and browser chrome, so if we generate UI mocks, I might default to light backgrounds unless you prefer otherwise."
+        },
+        {
+          "role": "user",
+          "content": "Focus on the naming only—ignore the theme inference."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-03-22T10:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you propose a short checklist for onboarding a new engineer to our observability stack?"
+        },
+        {
+          "role": "assistant",
+          "content": "Checklist: access to dashboards, runbooks location, example queries, alert routing expectations, and a guided first on-call shadow shift."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-04-04T12:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm configuring a new internal docs site theme. Should I pick dark or light for you to generate examples against?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "user_ui_theme_preference",
+      "type": "mutable",
+      "value": "dark mode (preferred for all tools; default assumption for recommendations)",
+      "introduced_in": 2,
+      "updated_in": 2,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [],
+      "source_authority": "user_stated"
+    },
+    {
+      "id": "user_ui_theme_inferred_from_screenshot",
+      "type": "mutable",
+      "value": "light theme (inferred from editor/browser chrome in code review screenshot context)",
+      "introduced_in": 6,
+      "updated_in": 6,
+      "retracted_in": null,
+      "should_persist": false,
+      "previous_values": [],
+      "source_authority": "agent_extracted"
+    }
+  ],
+  "probe": {
+    "session": 8,
+    "prompt": "What is my theme preference for tools and UI examples?",
+    "required_capabilities": ["retrieval", "update_tracking", "source_authority_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "dark mode",
+    "value_history": [
+      {
+        "value": "dark mode (explicit user preference for all tools)",
+        "as_of": "2026-02-08T09:25:00Z",
+        "source_session": 2
+      }
+    ],
+    "provenance": {
+      "source_session": 2,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["dark"],
+      "reject_elements": [],
+      "notes": "Must not answer light theme based on screenshot speculation in session 6."
+    }
+  },
+  "failure_modes": ["authority_violation", "stale_memory"],
+  "interference": [
+    {
+      "type": "context_misread",
+      "description": "Session 6 contains an assistant inference about light theme tied to a screenshot, which is more visually salient than the earlier abstract preference statement."
+    },
+    {
+      "type": "volume",
+      "description": "Several sessions discuss unrelated engineering topics, increasing the chance a retrieval system latches onto the most recent speculative assistant claim."
+    }
+  ]
+}

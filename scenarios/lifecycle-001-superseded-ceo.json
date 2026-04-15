@@ -1,0 +1,186 @@
+{
+  "scenario_id": "lifecycle-001-superseded-ceo",
+  "version": "1.0.0",
+  "category": "lifecycle",
+  "description": "Leadership fact is introduced as CEO Alice, then explicitly superseded months later by CEO Bob. Unrelated work chatter fills intervening sessions. Probe asks who is CEO now; correct answer must reflect the latest succession, not the earlier appointment.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-15T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Board announcement for the record: effective immediately, Alice Nguyen is our CEO. Please use that name on all external filings until further notice."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Current CEO: Alice Nguyen, effective immediately, for external filings."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-03T15:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: can you sanity-check this Terraform module for subnet tagging? I think we're missing a default map."
+        },
+        {
+          "role": "assistant",
+          "content": "If `var.tags` can be null, add `coalesce(var.tags, {})` before merging with locals; also ensure `merge(local.base_tags, var.extra_tags)` handles empty extra_tags."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-11T09:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Noise from marketing: draft three LinkedIn post angles for the Q1 reliability report — no leadership updates, just metrics."
+        },
+        {
+          "role": "assistant",
+          "content": "Three angles: (1) uptime vs peers with a single chart callout, (2) incident response time trend, (3) customer-visible latency improvement with a before/after anecdote."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-22T18:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Personal productivity question: what's a lightweight weekly review template if I hate long journaling?"
+        },
+        {
+          "role": "assistant",
+          "content": "Try a 15-minute loop: (1) calendar scan for surprises, (2) three wins, (3) three blockers next week, (4) one explicit 'not doing' list item."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-06-01T08:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Leadership update: Alice is stepping down for health reasons. The board named Bob Okonkwo as CEO effective today. Please treat Bob as the sole CEO going forward."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated leadership record. Current CEO: Bob Okonkwo, effective June 1st, 2026."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-07-09T12:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Off-topic: recommend a good desk chair under $800 if I sit 10 hours a day."
+        },
+        {
+          "role": "assistant",
+          "content": "Look for adjustable lumbar, seat depth adjustment, and breathable mesh; models from Herman Miller/Steelcase often have refurbished options under $800."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-08-27T16:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you summarize differences between OpenTelemetry traces and logs for a junior engineer?"
+        },
+        {
+          "role": "assistant",
+          "content": "Traces capture causality across services with spans and context propagation; logs are discrete events. Traces answer 'why was this slow path taken'; logs answer 'what did this component emit at time T'."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-10-14T11:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm updating the press page bios. Who is our CEO right now?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "company_ceo",
+      "type": "mutable",
+      "value": "Bob Okonkwo",
+      "introduced_in": 1,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "Alice Nguyen",
+          "as_of": "2026-01-15T10:00:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "Bob Okonkwo",
+          "as_of": "2026-06-01T08:00:00Z",
+          "source_session": 5
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 8,
+    "prompt": "I'm updating the press page bios. Who is our CEO right now?",
+    "required_capabilities": ["retrieval", "update_tracking", "lifecycle_awareness"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Bob Okonkwo",
+    "value_history": [
+      {
+        "value": "Alice Nguyen",
+        "as_of": "2026-01-15T10:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Bob Okonkwo",
+        "as_of": "2026-06-01T08:00:00Z",
+        "source_session": 5
+      }
+    ],
+    "provenance": {
+      "source_session": 5,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Bob Okonkwo", "Bob"],
+      "reject_elements": ["Alice Nguyen", "Alice"],
+      "notes": "Must reflect CEO succession; naming Alice as current CEO is a lifecycle failure."
+    },
+    "lifecycle_history": [
+      { "status": "active", "as_of": "2026-01-15" },
+      { "status": "superseded", "as_of": "2026-06-01" }
+    ]
+  },
+  "failure_modes": ["lifecycle_blindness", "stale_memory"],
+  "interference": [
+    {
+      "type": "volume",
+      "description": "Sessions 2–4, 6–7 contain substantial unrelated engineering and productivity discussion that can outrank the leadership updates in naive retrieval."
+    },
+    {
+      "type": "recency_bias",
+      "description": "Alice appears in an earlier authoritative user statement; systems that latch onto first-seen leadership facts may miss the explicit supersession in session 5."
+    }
+  ]
+}

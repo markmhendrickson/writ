@@ -1,0 +1,217 @@
+{
+  "scenario_id": "extraction_drift-001-contact-name-variants",
+  "version": "1.0.0",
+  "category": "extraction_drift",
+  "description": "The same person is introduced as Mark, later as Mark Hendrickson, then as M. Hendrickson across widely separated sessions with unrelated work in between. Evaluates whether the memory layer merges near-duplicate contact extractions instead of creating three contacts.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-08T15:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Quick note from the standup: Mark owns the API latency follow-up. Can you add him to the action tracker as the DRI?"
+        },
+        {
+          "role": "assistant",
+          "content": "Captured. Mark is listed as DRI for API latency follow-up."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-09T11:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: please draft a one-paragraph summary of why we are postponing the mobile redesign to Q3. No people names needed."
+        },
+        {
+          "role": "assistant",
+          "content": "Draft summary ready: mobile redesign deferred to Q3 due to capacity constraints and dependency on backend stabilization."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-11T09:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the vendor security review spreadsheet, use column headers Vendor, Risk Tier, Owner, Last Reviewed."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted. Spreadsheet columns: Vendor, Risk Tier, Owner, Last Reviewed."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-01-14T16:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We need a checklist for production cutovers: freeze window, rollback owner, comms channel, and post-mortem template link."
+        },
+        {
+          "role": "assistant",
+          "content": "Cutover checklist scaffold added with freeze window, rollback owner, comms channel, and post-mortem template placeholder."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-01-22T13:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the customer workshop invite list, include Mark Hendrickson from platform engineering. He should be optional attendee but on the technical deep-dive thread."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated invite planning: Mark Hendrickson (platform engineering) optional for workshop, included on technical deep-dive thread."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-01-24T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you rewrite this sentence for clarity only: The cache warming job runs nightly and warms the top 1% of keys by traffic."
+        },
+        {
+          "role": "assistant",
+          "content": "Rewritten: Each night, the cache warming job preloads the top 1% of keys ranked by traffic volume."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-01-29T14:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Budget question: if we shift $12k from travel to tooling, does that break any procurement guardrails?"
+        },
+        {
+          "role": "assistant",
+          "content": "Reallocating $12k from travel to tooling is within typical discretionary thresholds if tooling purchases follow the standard vendor list."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-02-03T08:55:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Please generate three neutral subject lines for the incident retrospective email. No names."
+        },
+        {
+          "role": "assistant",
+          "content": "Subject line options: (1) Retrospective: Feb 2 incident, (2) Action items from Feb 2 incident review, (3) Follow-up: reliability improvements after Feb 2 incident."
+        }
+      ]
+    },
+    {
+      "session_id": 9,
+      "timestamp": "2026-02-06T17:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the hiring panel on Thursday, confirm room AV and make sure we have printed rubrics."
+        },
+        {
+          "role": "assistant",
+          "content": "Thursday hiring panel: AV check and printed rubrics added to prep list."
+        }
+      ]
+    },
+    {
+      "session_id": 10,
+      "timestamp": "2026-02-11T12:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Legal asked who signed the data-processing addendum for the analytics pilot. It was M. Hendrickson on behalf of engineering."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded for legal: analytics pilot DPA signatory noted as M. Hendrickson representing engineering."
+        }
+      ]
+    },
+    {
+      "session_id": 11,
+      "timestamp": "2026-02-11T12:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Across everything we have discussed about owners and signatories for this analytics pilot, how many distinct contacts should exist for this person?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "contact_mark_hendrickson",
+      "type": "entity",
+      "value": "Mark Hendrickson (platform engineering; aliases: Mark, M. Hendrickson)",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 11,
+    "prompt": "Across everything we have discussed about owners and signatories for this analytics pilot, how many distinct contacts should exist for this person?",
+    "required_capabilities": ["retrieval", "deduplication"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "1 distinct contact (Mark Hendrickson; Mark and M. Hendrickson are the same person)",
+    "value_history": [
+      {
+        "value": "Mark",
+        "as_of": "2026-01-08T15:30:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Mark Hendrickson",
+        "as_of": "2026-01-22T13:10:00Z",
+        "source_session": 5
+      },
+      {
+        "value": "M. Hendrickson",
+        "as_of": "2026-02-11T12:00:00Z",
+        "source_session": 10
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "entity_count_and_equivalence",
+      "notes": "Pass if the system answers one distinct person/contact and explicitly or implicitly merges Mark, Mark Hendrickson, and M. Hendrickson. Fail if it reports three contacts or refuses to merge without abstaining per should_abstain."
+    },
+    "expected_entity_count": 1
+  },
+  "failure_modes": ["extraction_drift"],
+  "interference": [
+    {
+      "type": "near_duplicate",
+      "description": "Session noise includes other human names and initials in generic contexts (hiring panel, legal signatory phrasing) that could be mistaken for additional contacts if extraction is not conservative."
+    },
+    {
+      "type": "near_duplicate",
+      "description": "Short form Mark versus full name Mark Hendrickson versus initials M. Hendrickson are classic extraction variants that should collapse to one entity with high confidence."
+    }
+  ]
+}

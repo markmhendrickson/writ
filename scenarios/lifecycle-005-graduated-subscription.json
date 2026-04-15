@@ -1,0 +1,211 @@
+{
+  "scenario_id": "lifecycle-005-graduated-subscription",
+  "version": "1.0.0",
+  "category": "lifecycle",
+  "description": "A user subscription tier moves from free to pro after an upgrade, then reverts to free when the paid term lapses without renewal. The probe asks for the current tier; systems must not anchor on the peak entitlement.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-10T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Account housekeeping: my Nebula Analytics workspace is on the free tier for now. No paid seats yet—just evaluating dashboards."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Nebula Analytics workspace subscription: free tier; evaluation mode, no paid seats."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-06T11:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: what's a simple SQL pattern for deduplicating rows by the latest timestamp per key?"
+        },
+        {
+          "role": "assistant",
+          "content": "Common pattern: `ROW_NUMBER() OVER (PARTITION BY key ORDER BY ts DESC)` in a subquery/CTE, then filter `WHERE rn = 1`."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-04T09:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Billing update: I upgraded the Nebula Analytics workspace to the Pro tier today. Annual term paid through March 3, 2027. Please remember Pro as the current paid entitlement."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated subscription record. Nebula Analytics workspace: Pro tier, annual term through 2027-03-03."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-18T16:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Help me draft a concise note to my manager about why we should keep our staging environment sized down."
+        },
+        {
+          "role": "assistant",
+          "content": "Emphasize cost vs fidelity tradeoff: staging validates integration paths, not peak capacity; right-size to representative load and use perf tests for peaks."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-05-29T13:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Noise: recommend a podcast episode or essay on good API versioning practices."
+        },
+        {
+          "role": "assistant",
+          "content": "Look for material on explicit versioning (URL vs header), deprecation windows, compatibility layers, and consumer-driven contract tests."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-06-22T08:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Subscription change: my Nebula Analytics Pro plan was not renewed after the paid year. Effective today the workspace is back on the free tier. Pro features should no longer be assumed available."
+        },
+        {
+          "role": "assistant",
+          "content": "Subscription state updated. Nebula Analytics workspace returned to free tier; Pro entitlement ended as of this message."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-08-03T15:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you explain when to choose gRPC vs REST for internal microservices?"
+        },
+        {
+          "role": "assistant",
+          "content": "gRPC fits strongly typed, high-throughput internal RPC with streaming needs; REST fits broad interoperability, caching semantics, and human-debuggable HTTP tooling."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-09-14T12:25:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Random: outline a 30-minute interview loop for a senior backend candidate focused on concurrency bugs."
+        },
+        {
+          "role": "assistant",
+          "content": "Use a small code reading with a race or deadlock, ask them to hypothesize fixes, then discuss testing/monitoring to catch similar issues in production."
+        }
+      ]
+    },
+    {
+      "session_id": 9,
+      "timestamp": "2026-10-28T10:50:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What subscription tier is my Nebula Analytics workspace on right now, given everything we've discussed?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "nebula_analytics_workspace_tier",
+      "type": "mutable",
+      "value": "free",
+      "introduced_in": 1,
+      "updated_in": 6,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "free",
+          "as_of": "2026-01-10T14:00:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "pro",
+          "as_of": "2026-03-04T09:45:00Z",
+          "source_session": 3
+        },
+        {
+          "value": "free (after Pro non-renewal)",
+          "as_of": "2026-06-22T08:05:00Z",
+          "source_session": 6
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 9,
+    "prompt": "What subscription tier is my Nebula Analytics workspace on right now, given everything we've discussed?",
+    "required_capabilities": ["retrieval", "update_tracking", "lifecycle_awareness"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "free tier",
+    "value_history": [
+      {
+        "value": "free",
+        "as_of": "2026-01-10T14:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "pro",
+        "as_of": "2026-03-04T09:45:00Z",
+        "source_session": 3
+      },
+      {
+        "value": "free",
+        "as_of": "2026-06-22T08:05:00Z",
+        "source_session": 6
+      }
+    ],
+    "provenance": {
+      "source_session": 6,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["free"],
+      "reject_elements": ["Pro", "pro tier", "paid", "through March 2027", "annual term"],
+      "notes": "Must reflect lapse after Pro; citing Pro as current is stale-memory / lifecycle failure."
+    },
+    "lifecycle_history": [
+      { "status": "active", "as_of": "2026-01-10" },
+      { "status": "superseded", "as_of": "2026-03-04" },
+      { "status": "active", "as_of": "2026-06-22" }
+    ]
+  },
+  "failure_modes": ["lifecycle_blindness", "stale_memory"],
+  "interference": [
+    {
+      "type": "peak_entitlement_anchor",
+      "description": "Pro is the highest-status tier mentioned and includes a concrete paid-through date, tempting systems to treat Pro as the enduring default despite explicit non-renewal."
+    },
+    {
+      "type": "volume",
+      "description": "Sessions 2, 4–5, 7–8 are unrelated technical discussions that can bury the downgrade message in session 6."
+    }
+  ]
+}

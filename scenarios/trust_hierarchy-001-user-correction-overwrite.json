@@ -1,0 +1,161 @@
+{
+  "scenario_id": "trust_hierarchy-001-user-correction-overwrite",
+  "version": "1.0.0",
+  "category": "trust_hierarchy",
+  "description": "The user explicitly states Alice Chen's work email in an early session. Weeks later, an automated conversation summary incorrectly normalizes the address to a personal Gmail domain. The probe asks for Alice's work email. A compliant memory system must return the user-stated work address and treat the summarized Gmail string as lower authority.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-06T16:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the vendor onboarding packet, use Alice Chen as the technical contact. Her work email is alice@work.com — that's the one legal needs on the contract, not a personal inbox."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Technical contact: Alice Chen, work email alice@work.com for vendor onboarding and legal."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-14T11:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: can you draft a short agenda for tomorrow's infra standup? Just capacity planning and on-call handoff."
+        },
+        {
+          "role": "assistant",
+          "content": "Agenda draft: (1) capacity planning review, (2) on-call handoff notes, (3) parking lot if time permits."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-22T09:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm blocked on the Kafka upgrade doc — the diagram export from our wiki is blurry. Any tips for crisp SVG exports?"
+        },
+        {
+          "role": "assistant",
+          "content": "Try exporting SVG directly from the source tool if possible; if you must rasterize, use 2x resolution and downscale. Also check that the wiki isn't compressing previews."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-03T13:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Side question: what's a reasonable SLA target for internal API p95 latency if we're not customer-facing yet?"
+        },
+        {
+          "role": "assistant",
+          "content": "For internal-only APIs, many teams start around 300–500ms p95 during early growth, then tighten as dependencies multiply. Pair it with error budget tracking even if users are internal."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-19T08:50:00Z",
+      "messages": [
+        {
+          "role": "assistant",
+          "content": "Weekly conversation summary (auto-generated): Vendor onboarding updates include assigning Alice Chen as technical contact. Contact email on file: alice@gmail.com for follow-ups."
+        },
+        {
+          "role": "user",
+          "content": "Thanks. I'll skim the summary later."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-02T17:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you help me word a polite reply to finance about why we can't consolidate all SaaS invoices into one vendor portal this quarter?"
+        },
+        {
+          "role": "assistant",
+          "content": "You can emphasize contract fragmentation, different billing entities, and migration risk this quarter, while proposing a phased consolidation plan with a realistic timeline."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-03-18T10:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Quick check before I send the onboarding reminder: what email should I use for Alice Chen's work contact?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "alice_chen_work_email",
+      "type": "mutable",
+      "value": "alice@work.com",
+      "introduced_in": 1,
+      "updated_in": 1,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [],
+      "source_authority": "user_stated"
+    },
+    {
+      "id": "alice_chen_email_summary_claim",
+      "type": "mutable",
+      "value": "alice@gmail.com",
+      "introduced_in": 5,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": false,
+      "previous_values": [],
+      "source_authority": "ai_summarized"
+    }
+  ],
+  "probe": {
+    "session": 7,
+    "prompt": "What email should I use for Alice Chen's work contact?",
+    "required_capabilities": ["retrieval", "update_tracking", "source_authority_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "alice@work.com",
+    "value_history": [
+      {
+        "value": "alice@work.com",
+        "as_of": "2026-01-06T16:30:00Z",
+        "source_session": 1
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
+    }
+  },
+  "failure_modes": ["authority_violation", "stale_memory"],
+  "interference": [
+    {
+      "type": "authority_inversion",
+      "description": "Session 5 contains a higher-recency, assistant-authored summary that states alice@gmail.com. Systems without source authority tracking may prefer recency or assistant voice over the explicit user statement in session 1."
+    },
+    {
+      "type": "volume",
+      "description": "Sessions 2–4 and 6 contain substantial unrelated discussion that can dilute retrieval signals for the vendor onboarding fact."
+    }
+  ]
+}

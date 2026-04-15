@@ -1,0 +1,205 @@
+{
+  "scenario_id": "lifecycle-004-reinstated-policy",
+  "version": "1.0.0",
+  "category": "lifecycle",
+  "description": "Vendor data handling policy A is active, superseded by policy B, then B is revoked and A is explicitly reinstated as the governing standard. The probe asks for the current policy letter; the answer must be A, not the intermediate B state.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-20T09:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Security baseline for Acme vendors: Policy A (data minimization + 30-day log retention) is active immediately for all new integrations. This is the default until we say otherwise."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Current vendor security baseline: Policy A — data minimization and 30-day log retention — active for new Acme integrations."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-14T11:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: help me compare two mechanical keyboards for typing-heavy days."
+        },
+        {
+          "role": "assistant",
+          "content": "Prioritize switch feel (tactile vs linear), layout (full vs compact), programmability, and wrist angle; try both if possible since fatigue is subjective."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-28T15:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Noise from sales: draft a one-slide explainer on why SSO alone is not sufficient vendor assurance."
+        },
+        {
+          "role": "assistant",
+          "content": "Lead with identity != data handling: SSO governs access, not retention, subprocessors, encryption scope, or breach notification timelines."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-05-06T08:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Vendor policy change: Policy B (broader subprocessors + 90-day retention) replaces Policy A for Acme vendors effective today. Treat B as the current governing policy until further notice."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated. Current governing vendor policy for Acme integrations: Policy B (broader subprocessors, 90-day retention), superseding Policy A as of this message."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-06-17T13:25:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you suggest a lightweight threat-modeling agenda for a 60-minute session?"
+        },
+        {
+          "role": "assistant",
+          "content": "10 minutes scope/assets, 20 minutes trust boundaries/data flows, 20 minutes STRIDE-style brainstorm, 10 minutes prioritized mitigations and owners."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-07-30T10:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Off-topic: what's a sane default for API rate limits on internal tools shared across teams?"
+        },
+        {
+          "role": "assistant",
+          "content": "Start with per-key and per-team token buckets with burst allowance; pair with clear 429 responses and dashboards so limits can be tuned from real usage."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-08-22T16:50:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Random writing help: tighten this sentence about latency budgets without sounding defensive to executives."
+        },
+        {
+          "role": "assistant",
+          "content": "Lead with customer impact and control: 'We hold a fixed end-to-end latency budget so reliability stays predictable as we scale dependencies.'"
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-10-03T12:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Compliance reversal: Policy B is revoked for cause (subprocessor scope too broad). Policy A is reinstated as the sole governing vendor data handling standard for Acme integrations, effective immediately."
+        },
+        {
+          "role": "assistant",
+          "content": "Policy state updated. Policy B revoked; Policy A reinstated as the active governing vendor data handling policy for Acme integrations."
+        },
+        {
+          "role": "user",
+          "content": "Before I email a new vendor: which letter policy is currently in force for Acme vendor data handling?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "acme_vendor_data_policy",
+      "type": "mutable",
+      "value": "Policy A",
+      "introduced_in": 1,
+      "updated_in": 8,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "Policy A (active baseline)",
+          "as_of": "2026-01-20T09:30:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "Policy B (replaced A)",
+          "as_of": "2026-05-06T08:00:00Z",
+          "source_session": 4
+        },
+        {
+          "value": "Policy A (reinstated; B revoked)",
+          "as_of": "2026-10-03T12:15:00Z",
+          "source_session": 8
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 8,
+    "prompt": "Before I email a new vendor: which letter policy is currently in force for Acme vendor data handling?",
+    "required_capabilities": ["retrieval", "update_tracking", "lifecycle_awareness"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Policy A",
+    "value_history": [
+      {
+        "value": "Policy A",
+        "as_of": "2026-01-20T09:30:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Policy B",
+        "as_of": "2026-05-06T08:00:00Z",
+        "source_session": 4
+      },
+      {
+        "value": "Policy A (reinstated)",
+        "as_of": "2026-10-03T12:15:00Z",
+        "source_session": 8
+      }
+    ],
+    "provenance": {
+      "source_session": 8,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Policy A", "A"],
+      "reject_elements": ["Policy B", "B is current", "90-day retention as the current governing policy"],
+      "notes": "Must reflect reinstatement after intermediate supersession; answering B is a lifecycle blindness failure."
+    },
+    "lifecycle_history": [
+      { "status": "active", "as_of": "2026-01-20" },
+      { "status": "superseded", "as_of": "2026-05-06" },
+      { "status": "active", "as_of": "2026-10-03" }
+    ]
+  },
+  "failure_modes": ["lifecycle_blindness", "stale_memory"],
+  "interference": [
+    {
+      "type": "last_writer_wins_on_intermediate_state",
+      "description": "Policy B is the most recent explicit replacement before the final session; systems that stop at 'latest change' without reinstatement handling may answer B."
+    },
+    {
+      "type": "volume",
+      "description": "Sessions 2–3, 5–7 are unrelated and lengthy, increasing retrieval difficulty for the three policy state transitions."
+    }
+  ]
+}

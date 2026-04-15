@@ -77,19 +77,21 @@ export async function generateMarkdownReport(
   for (const [cat, results] of Object.entries(grouped).sort()) {
     lines.push(`### ${cat}`);
     lines.push("");
-    lines.push("| Scenario | Mode | Recall | Update | Temporal | Provenance | Constraint | Failures |");
-    lines.push("|----------|------|--------|--------|----------|------------|------------|----------|");
+    lines.push("| Scenario | Mode | Recall | Update | Temporal | Provenance | Constraint | Authority | Lifecycle | Failures |");
+    lines.push("|----------|------|--------|--------|----------|------------|------------|-----------|-----------|----------|");
     for (const r of results) {
       const recall = r.scores.recall_correct ? "PASS" : "FAIL";
       const update = r.scores.update_fidelity === null ? "N/A" : r.scores.update_fidelity ? "PASS" : "FAIL";
       const temporal = r.scores.temporal_correct === null ? "N/A" : r.scores.temporal_correct ? "PASS" : "FAIL";
       const prov = r.scores.provenance_complete === null ? "N/A" : r.scores.provenance_complete ? "PASS" : "FAIL";
       const constraint = r.scores.constraint_respected === null ? "N/A" : r.scores.constraint_respected ? "PASS" : "FAIL";
+      const authority = r.scores.source_authority_intact === null ? "N/A" : r.scores.source_authority_intact ? "PASS" : "FAIL";
+      const lifecycle = r.scores.lifecycle_current_correct === null ? "N/A" : r.scores.lifecycle_current_correct ? "PASS" : "FAIL";
       const failures = r.detected_failures.length > 0
         ? r.detected_failures.join(", ")
         : "none";
       lines.push(
-        `| ${r.scenario_id} | ${r.mode} | ${recall} | ${update} | ${temporal} | ${prov} | ${constraint} | ${failures} |`
+        `| ${r.scenario_id} | ${r.mode} | ${recall} | ${update} | ${temporal} | ${prov} | ${constraint} | ${authority} | ${lifecycle} | ${failures} |`
       );
     }
     lines.push("");
@@ -111,6 +113,11 @@ function formatScoreTable(scores: AggregateScores): string {
     ["Constraint Consistency", pct(scores.constraint_consistency)],
     ["Hallucination Rate", pct(scores.hallucination_rate)],
     ["Abstention Quality", pct(scores.abstention_quality)],
+    ["Source Authority Integrity", pct(scores.source_authority_integrity)],
+    ["Dedup Accuracy", pct(scores.dedup_accuracy)],
+    ["Failure Resilience", pct(scores.failure_resilience)],
+    ["Lifecycle Accuracy", pct(scores.lifecycle_accuracy)],
+    ["Pre-Delivery Detection", pct(scores.pre_delivery_detection)],
     ["Scenarios Evaluated", String(scores.scenarios_evaluated)],
   ];
   return rows.map((r) => `| ${r.join(" | ")} |`).join("\n");
@@ -139,7 +146,7 @@ function formatModeComparison(report: BenchmarkReport): string {
 
 function formatCategoryTable(report: BenchmarkReport): string {
   const cats = Object.keys(report.by_category).sort();
-  const header = ["Category", "Scenarios", "Recall", "Update", "Drift", "Temporal", "Provenance", "Constraint", "Halluc.", "Abstention"];
+  const header = ["Category", "Scenarios", "Recall", "Update", "Drift", "Temporal", "Provenance", "Constraint", "Authority", "Lifecycle", "Failure Res.", "Halluc.", "Abstention"];
   const rows = [
     header,
     header.map(() => "---"),
@@ -154,6 +161,9 @@ function formatCategoryTable(report: BenchmarkReport): string {
         pct(s.temporal_accuracy),
         pct(s.provenance_completeness),
         pct(s.constraint_consistency),
+        pct(s.source_authority_integrity),
+        pct(s.lifecycle_accuracy),
+        pct(s.failure_resilience),
         pct(s.hallucination_rate),
         pct(s.abstention_quality),
       ];

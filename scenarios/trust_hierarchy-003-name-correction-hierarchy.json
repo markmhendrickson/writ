@@ -1,0 +1,208 @@
+{
+  "scenario_id": "trust_hierarchy-003-name-correction-hierarchy",
+  "version": "1.0.0",
+  "category": "trust_hierarchy",
+  "description": "An early assistant message extracts a physician name as Dr. Smith from partial context. The user later supplies the full correct name Dr. Sarah Smith for external communications. Much later, an auto-summary collapses the name back to Dr. Smith. The probe asks for the doctor's correct full name; user correction must override both the initial extraction and the summary regression.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-09T13:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I pasted notes from a hallway conversation. Someone said our new clinical advisor signed yesterday—last name Smith, goes by doctor title. Can you help me draft a one-liner announcement for Slack?"
+        },
+        {
+          "role": "assistant",
+          "content": "Draft: We're excited to welcome Dr. Smith as a clinical advisor, bringing hands-on perspective as we expand our care workflows pilot."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-16T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: what's a good template for a blameless postmortem when the root cause was a config typo?"
+        },
+        {
+          "role": "assistant",
+          "content": "Use timeline + impact + detection + root cause + contributing factors + what went well + action items with owners. Keep names focused on systems and processes, not individuals."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-24T15:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you help me tighten this paragraph for a hiring post? It's too buzzwordy."
+        },
+        {
+          "role": "assistant",
+          "content": "Share the paragraph and the tone you want (clinical vs engineering vs general). I'll rewrite with concrete responsibilities and constraints instead of buzzwords."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-05T09:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Correction for anything we inferred earlier: the clinical advisor's full professional name is Dr. Sarah Smith. Please use that exact form in external emails and the website blurb—do not shorten to Dr. Smith."
+        },
+        {
+          "role": "assistant",
+          "content": "Acknowledged. External-facing name: Dr. Sarah Smith (full form, not shortened)."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-18T11:55:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Help me draft a calendar hold for a 30-minute intro call between our partnerships lead and the clinical advisor."
+        },
+        {
+          "role": "assistant",
+          "content": "Calendar hold copy: Intro call — partnerships x clinical advisor (Dr. Sarah Smith). Goal: align on pilot scope and review constraints. Please propose 2–3 times next week."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-04T14:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Random: what's a polite way to decline a conference panel if I'm already overcommitted?"
+        },
+        {
+          "role": "assistant",
+          "content": "Thank them, cite current commitments, offer a referral or a written quote if helpful, and leave the door open for a later season if true."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-03-14T08:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you summarize the top three risks if we expand the pilot to two hospitals simultaneously?"
+        },
+        {
+          "role": "assistant",
+          "content": "Key risks: operational load on implementation staff, harder causal attribution of outcomes changes, and increased variance in local workflows that complicates support playbooks."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-03-29T19:15:00Z",
+      "messages": [
+        {
+          "role": "assistant",
+          "content": "Quarterly relationship summary (auto-generated): Clinical advisor engagement notes reference recurring meetings with Dr. Smith and partnerships introductions scheduled through Q2."
+        },
+        {
+          "role": "user",
+          "content": "Noted."
+        }
+      ]
+    },
+    {
+      "session_id": 9,
+      "timestamp": "2026-04-10T12:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm updating the public advisors page. What is the clinical advisor's correct full name as we should display it externally?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "clinical_advisor_display_name",
+      "type": "mutable",
+      "value": "Dr. Sarah Smith",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "Dr. Smith (inferred from partial hallway notes)",
+          "as_of": "2026-01-09T13:20:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "Dr. Sarah Smith (user correction; external-facing full form)",
+          "as_of": "2026-02-05T09:10:00Z",
+          "source_session": 4
+        }
+      ],
+      "source_authority": "user_confirmed"
+    },
+    {
+      "id": "clinical_advisor_name_summary_regression",
+      "type": "mutable",
+      "value": "Dr. Smith",
+      "introduced_in": 8,
+      "updated_in": 8,
+      "retracted_in": null,
+      "should_persist": false,
+      "previous_values": [],
+      "source_authority": "ai_summarized"
+    }
+  ],
+  "probe": {
+    "session": 9,
+    "prompt": "What is the clinical advisor's correct full name as we should display it externally?",
+    "required_capabilities": ["retrieval", "update_tracking", "source_authority_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Dr. Sarah Smith",
+    "value_history": [
+      {
+        "value": "Dr. Smith (initial assistant draft from incomplete notes)",
+        "as_of": "2026-01-09T13:20:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Dr. Sarah Smith",
+        "as_of": "2026-02-05T09:10:00Z",
+        "source_session": 4
+      }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["Sarah", "Smith", "Dr."],
+      "reject_elements": [],
+      "notes": "Answer must include Sarah; Dr. Smith alone is insufficient."
+    }
+  },
+  "failure_modes": ["authority_violation", "stale_memory"],
+  "interference": [
+    {
+      "type": "authority_inversion",
+      "description": "Session 8 contains a recent auto-summary reverting to Dr. Smith, which can override the corrected full name if the system ranks assistant summaries above explicit user corrections."
+    },
+    {
+      "type": "volume",
+      "description": "Multiple unrelated sessions between the correction and the summary add retrieval noise and increase the chance of grabbing the earliest shorthand form."
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "scenario_id": "failure_injection-002-fresh-session-noop",
+  "version": "1.0.0",
+  "category": "failure_injection",
+  "description": "In the first ever session on a new machine, the user sets a durable preference: notifications timezone PST. A Hermes-style persistence path incorrectly treats the flush cursor as already satisfied (0===0 no-op), so the second and third sessions never observe a write barrier even though the preference should exist. Later sessions only contain unrelated work. The probe must still return PST by relying on durable memory rather than recent chat.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-03T18:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "First session on this laptop after imaging it. Please remember this permanently: for all scheduling and notification summaries, use my timezone PST. I'll build workflows on top of that assumption."
+        },
+        {
+          "role": "assistant",
+          "content": "Preference stored. I'll treat PST as your canonical timezone for scheduling and notification summaries going forward."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-04T09:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Morning churn: can you draft a terse stand-up update for me based on yesterday's notes file? No calendar math needed."
+        },
+        {
+          "role": "assistant",
+          "content": "Draft stand-up: shipped Hermes reconnect hardening, triaged two flaky integration tests, today focusing on bridge rollout checklist and CI stabilization."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-05T13:02:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated polish: rewrite this paragraph to sound less robotic but keep the technical claims intact. [paste omitted]"
+        },
+        {
+          "role": "assistant",
+          "content": "Here's a tighter version that keeps the latency and reliability numbers but reads more like a human release note."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-06T16:28:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I need a quick rubric for reviewing external PRs to our OpenClaw plugin—security, tests, docs—in bullet form."
+        },
+        {
+          "role": "assistant",
+          "content": "Security: least privilege, secret handling, supply chain. Tests: contract tests for tool schemas, negative paths. Docs: upgrade notes, config examples, failure modes. Ship only with rollback story."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-07T10:44:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Noise control question: what's a sane default max tokens for summarizing long incident threads without losing root cause?"
+        },
+        {
+          "role": "assistant",
+          "content": "Start around 1.5k–2k tokens for a first pass summary with explicit bullets for timeline, blast radius, mitigations, and unknowns; escalate only if the user asks for depth."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-02-09T08:51:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Before we plan weekly reminders, what timezone should you assume for my notification summaries?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "user_notifications_timezone",
+      "type": "mutable",
+      "value": "PST",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Before we plan weekly reminders, what timezone should you assume for my notification summaries?",
+    "required_capabilities": ["retrieval", "failure_resilience"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "PST",
+    "value_history": [
+      {
+        "value": "PST",
+        "as_of": "2026-02-03T18:40:00Z",
+        "source_session": 1
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
+    }
+  },
+  "failure_modes": ["flush_corruption", "stale_memory"],
+  "interference": [
+    {
+      "type": "noop_flush",
+      "description": "Models the Hermes/OpenClaw bug class where a fresh session's first flush compares against an uninitialized cursor (0===0) and skips writing, so later sessions have no transcript anchor for PST even though the user explicitly requested durable storage."
+    },
+    {
+      "type": "context_absence",
+      "description": "Sessions 2–5 never restate the timezone, tempting systems that only read the local window to hallucinate UTC or the host default."
+    }
+  ]
+}

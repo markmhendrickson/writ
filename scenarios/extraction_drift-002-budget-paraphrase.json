@@ -1,0 +1,203 @@
+{
+  "scenario_id": "extraction_drift-002-budget-paraphrase",
+  "version": "1.0.0",
+  "category": "extraction_drift",
+  "description": "The same budget ceiling for the observability rollout is stated as $50K, spelled out as fifty thousand dollars, and repeated as $50,000 in a formal line item. Tests consolidation of numeric facts across paraphrases and formats.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-03-02T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Before we scope observability, confirm we are still aligned on doing phased rollout rather than big bang."
+        },
+        {
+          "role": "assistant",
+          "content": "Assumption noted: phased observability rollout preferred over big bang."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-03-04T14:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Leadership approved the observability initiative with a $50K budget cap for vendor spend and contracted implementation this quarter."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded: observability initiative approved with a $50K cap for vendor and implementation spend this quarter."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-06T11:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: can you list three risks of using a single shared dashboard for on-call if RBAC is misconfigured?"
+        },
+        {
+          "role": "assistant",
+          "content": "Risks: accidental exposure of customer identifiers, unauthorized edits to alert thresholds, and privilege escalation if admin roles are over-provisioned."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-09T16:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We need a one-liner for the internal wiki: why sampling-based tracing is acceptable for this phase."
+        },
+        {
+          "role": "assistant",
+          "content": "Wiki one-liner: sampling-based tracing balances cost and signal for early rollout while preserving tail latency visibility on critical paths."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-12T10:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Please compare OpenTelemetry collector sizing assumptions for 5k RPS vs 20k RPS. No budget numbers."
+        },
+        {
+          "role": "assistant",
+          "content": "At 5k RPS, a single collector pair with modest CPU is usually sufficient if pipelines are simple. At 20k RPS, expect horizontal scaling, backpressure tuning, and more memory for batching."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-18T13:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Finance asked me to restate the observability envelope in words for the slide deck: we are cleared for a fifty thousand dollar budget for vendors and external implementation, nothing beyond that without re-approval."
+        },
+        {
+          "role": "assistant",
+          "content": "Deck-ready wording: observability initiative is approved up to fifty thousand dollars for vendor and external implementation costs; additional spend requires re-approval."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-03-21T09:50:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Side question: do we have a standard retention policy for debug logs in staging?"
+        },
+        {
+          "role": "assistant",
+          "content": "Typical pattern is 7 to 14 days for staging debug logs unless compliance requires shorter; confirm with security for your tenant."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-03-24T15:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the architecture review doc, add a short paragraph on why we are not buying premium support in year one."
+        },
+        {
+          "role": "assistant",
+          "content": "Paragraph added: year-one plan avoids premium support to keep vendor TCO predictable while the team builds internal runbooks."
+        }
+      ]
+    },
+    {
+      "session_id": 9,
+      "timestamp": "2026-03-27T11:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Pasting the CFO line item for the packet: Budget allocation: $50,000 — Observability rollout (vendor + contracted implementation), Q1, non-headcount."
+        },
+        {
+          "role": "assistant",
+          "content": "Captured CFO line item: $50,000 allocation for Q1 observability rollout covering vendor and contracted implementation, non-headcount."
+        }
+      ]
+    },
+    {
+      "session_id": 10,
+      "timestamp": "2026-03-27T12:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the approved budget amount for the observability rollout this quarter, stated as a single number in dollars?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "fact_observability_budget_q1",
+      "type": "entity",
+      "value": "$50,000 approved budget cap (observability rollout, vendor + contracted implementation, Q1)",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 10,
+    "prompt": "What is the approved budget amount for the observability rollout this quarter, stated as a single number in dollars?",
+    "required_capabilities": ["retrieval", "deduplication"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "$50,000 (single consolidated budget fact; equivalent to $50K and fifty thousand dollars)",
+    "value_history": [
+      {
+        "value": "$50K",
+        "as_of": "2026-03-04T14:20:00Z",
+        "source_session": 2
+      },
+      {
+        "value": "fifty thousand dollars",
+        "as_of": "2026-03-18T13:30:00Z",
+        "source_session": 6
+      },
+      {
+        "value": "$50,000",
+        "as_of": "2026-03-27T11:45:00Z",
+        "source_session": 9
+      }
+    ],
+    "provenance": {
+      "source_session": 2,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "numeric_equivalence",
+      "notes": "Pass if answer normalizes to 50000 USD as one fact. Fail if the system reports multiple conflicting budget facts or multiple entities for the same initiative budget."
+    },
+    "expected_entity_count": 1
+  },
+  "failure_modes": ["extraction_drift"],
+  "interference": [
+    {
+      "type": "near_duplicate",
+      "description": "Other dollar amounts appear in session 5 (5k and 20k RPS) unrelated to the budget cap; extraction must not merge those with the observability budget."
+    },
+    {
+      "type": "near_duplicate",
+      "description": "$50K versus spelled-out fifty thousand versus $50,000 should merge into one budget entity or one canonical numeric fact."
+    }
+  ]
+}

@@ -1,0 +1,180 @@
+{
+  "scenario_id": "extraction_drift-005-company-name-variants",
+  "version": "1.0.0",
+  "category": "extraction_drift",
+  "description": "The same client is named Acme, Acme Corp, Acme Corporation, and ACME Inc. across sessions with unrelated vendor chatter in between. Tests company entity deduplication under legal-name and branding variants.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-06-02T10:15:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the pilot SOW, the client counterparty should be listed as Acme on the cover page to match how they sign purchase orders."
+        },
+        {
+          "role": "assistant",
+          "content": "SOW cover page counterparty noted as Acme to match PO signing style."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-06-03T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: summarize differences between SOC 2 Type I and Type II for an internal FAQ. No customer names."
+        },
+        {
+          "role": "assistant",
+          "content": "Type I reports on controls at a point in time; Type II reports on operating effectiveness over a period, usually six to twelve months."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-06-05T09:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Legal wants the MSA party block to read Acme Corp including the registered agent address we already have on file."
+        },
+        {
+          "role": "assistant",
+          "content": "MSA party line updated to Acme Corp with existing registered agent address on file."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-06-06T11:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We are evaluating Datadog versus Grafana Cloud for internal observability. Keep customer names out of the comparison table."
+        },
+        {
+          "role": "assistant",
+          "content": "Comparison axes: pricing model, cardinality controls, SSO posture, and incident workflow integrations, without naming external customers."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-06-08T16:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Insurance asked for the full legal name on the certificate of liability: Acme Corporation, same engagement as the pilot SOW."
+        },
+        {
+          "role": "assistant",
+          "content": "Certificate holder legal name recorded as Acme Corporation, same engagement as pilot SOW."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-06-09T12:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Procurement note: Apex Systems submitted a competing quote for staff aug. Do not confuse Apex with our pilot client."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted: Apex Systems staff aug quote is separate from the pilot client relationship context."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-06-10T13:50:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The wire instructions PDF titles the beneficiary as ACME Inc. but it is the same pilot customer we have been contracting with."
+        },
+        {
+          "role": "assistant",
+          "content": "Wire beneficiary captured as ACME Inc., explicitly same pilot customer as prior contracting steps."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-06-10T14:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Across the SOW, MSA, insurance certificate, and wire instructions, how many distinct client companies should we have for this pilot engagement?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "company_client_acme_pilot",
+      "type": "entity",
+      "value": "Acme Corporation (client; aliases: Acme, Acme Corp, ACME Inc.; pilot engagement)",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 8,
+    "prompt": "Across the SOW, MSA, insurance certificate, and wire instructions, how many distinct client companies should we have for this pilot engagement?",
+    "required_capabilities": ["retrieval", "deduplication"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "1 distinct client company (Acme / Acme Corp / Acme Corporation / ACME Inc. are the same organization)",
+    "value_history": [
+      {
+        "value": "Acme",
+        "as_of": "2026-06-02T10:15:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Acme Corp",
+        "as_of": "2026-06-05T09:40:00Z",
+        "source_session": 3
+      },
+      {
+        "value": "Acme Corporation",
+        "as_of": "2026-06-08T16:05:00Z",
+        "source_session": 5
+      },
+      {
+        "value": "ACME Inc.",
+        "as_of": "2026-06-10T13:50:00Z",
+        "source_session": 7
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "entity_count_and_org_merge",
+      "notes": "Pass if the system answers one client company and treats name variants as one. Fail if it reports multiple client companies for the pilot or merges Apex Systems into the client."
+    },
+    "expected_entity_count": 1
+  },
+  "failure_modes": ["extraction_drift"],
+  "interference": [
+    {
+      "type": "near_duplicate",
+      "description": "Apex Systems appears as another company name in procurement context; similar vendor naming noise must not merge with Acme."
+    },
+    {
+      "type": "near_duplicate",
+      "description": "Acme versus Acme Corp versus Acme Corporation versus ACME Inc. are corporate identity near-duplicates and should consolidate to one client entity."
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "scenario_id": "failure_injection-001-flush-not-triggered",
+  "version": "1.0.0",
+  "category": "failure_injection",
+  "description": "During a working session the agent curates durable memory that updates OpenClaw integration project status from planning to in progress. The host process is killed before the memory flush callback runs, so the durable store never receives the final mutation. A later session bootstraps from an older snapshot. The probe asks for the current project status; a resilient system must still return in progress because that was the last user-confirmed curated value.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-08T09:12:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Quick context for OpenClaw: we're still in the planning phase for the Hermes bridge. I mostly need help drafting the rollout checklist today—nothing about status changes yet."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. I'll focus on a rollout checklist draft for the Hermes bridge while treating the OpenClaw integration as planning-phase work unless you say otherwise."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-08T16:47:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Stand-up update: we finished the Hermes spike and got sign-off from platform. Please update our durable project memory—OpenClaw integration status should move from planning to in progress starting now. I have to drop for a P0 incident in thirty seconds."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. OpenClaw integration project status is now in progress as of this session, with Hermes spike complete and platform sign-off noted for the checklist."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-09T11:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: can you summarize how we usually format incident timelines for exec updates? I don't need anything about OpenClaw here."
+        },
+        {
+          "role": "assistant",
+          "content": "Typical exec incident timeline: timestamped bullets for detection, mitigation, customer impact, and open questions, with owners on each line. Keep it under one page unless asked for depth."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-01-10T08:22:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm blocked on Docker disk space on my laptop—any safe cleanup steps before I nuke dangling images?"
+        },
+        {
+          "role": "assistant",
+          "content": "Start with docker system df, prune unused networks and build cache, then remove dangling images. Avoid pruning volumes unless you have confirmed backups."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-01-11T14:33:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Random question: what's a good default backoff for Hermes reconnect loops if we don't want thundering herds?"
+        },
+        {
+          "role": "assistant",
+          "content": "Use jittered exponential backoff with a modest cap, for example base 250ms doubling to a few seconds, plus random jitter per client. That spreads reconnect storms without hiding real outages."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-01-14T10:18:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm back after that incident week. What is the current OpenClaw integration project status in our memory?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "openclaw_integration_project_status",
+      "type": "mutable",
+      "value": "in progress",
+      "introduced_in": 1,
+      "updated_in": 2,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "planning",
+          "as_of": "2026-01-08T09:12:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "in progress",
+          "as_of": "2026-01-08T16:47:00Z",
+          "source_session": 2
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "I'm back after that incident week. What is the current OpenClaw integration project status in our memory?",
+    "required_capabilities": ["retrieval", "failure_resilience"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "in progress",
+    "value_history": [
+      {
+        "value": "planning",
+        "as_of": "2026-01-08T09:12:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "in progress",
+        "as_of": "2026-01-08T16:47:00Z",
+        "source_session": 2
+      }
+    ],
+    "provenance": {
+      "source_session": 2,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "exact"
+    }
+  },
+  "failure_modes": ["flush_corruption", "stale_memory"],
+  "interference": [
+    {
+      "type": "flush_failure",
+      "description": "Simulates an OpenClaw-style abrupt host termination after the assistant acknowledges the status change but before the memory flush promise resolves; durable storage may still show planning while the transcript contains in progress."
+    },
+    {
+      "type": "stale_snapshot",
+      "description": "Session 6 may hydrate context from a cold-start snapshot taken before session 2's mutation landed, biasing retrieval toward planning unless the system reconciles transcript facts with durable state."
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "scenario_id": "extraction_drift-003-meeting-context-drift",
+  "version": "1.0.0",
+  "category": "extraction_drift",
+  "description": "One project kickoff meeting is referenced three times with drifting metadata: date wording, attendee list completeness, and topic phrasing. Noise sessions discuss other meetings. Tests deduplication of calendar-like entities under extraction variance.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-04-01T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Calendar hygiene question: should we default new internal meetings to 25 minutes?"
+        },
+        {
+          "role": "assistant",
+          "content": "Defaulting to 25 minutes is a common pattern to reduce stacked hour blocks; pair it with explicit agendas for effectiveness."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-04-03T15:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Kickoff for the Atlas billing migration is scheduled Tuesday next week at 10am Pacific. Invitees so far: me, Priya, and Jordan from infra."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted: Atlas billing migration kickoff next Tuesday 10:00 PT with you, Priya, and Jordan (infra)."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-04-04T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: I need talking points for the weekly sales pipeline review at 4pm today. No migration content."
+        },
+        {
+          "role": "assistant",
+          "content": "Pipeline review talking points: summarize stage movement, flag deals slipping past close date, and list top three risks by revenue impact."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-04-05T11:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Follow-up on the billing migration kickoff: it is April 8th at 10:00 Pacific. Agenda is cutover plan, rollback criteria, and comms timeline. Attendees now include finance (Luis) in addition to infra."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated kickoff details: April 8, 10:00 PT; agenda covers cutover plan, rollback criteria, comms timeline; attendees include infra and finance (Luis)."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-06T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For tomorrow's vendor security interview, send me five sharp questions about SSO session fixation. Different project from Atlas."
+        },
+        {
+          "role": "assistant",
+          "content": "SSO session fixation question themes: binding of session cookies to device posture, rotation after privilege elevation, IdP-initiated vs SP-initiated flows, logout propagation, and detection of concurrent suspicious sessions."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-04-07T16:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Recapping the Atlas kickoff sync we held this morning: we aligned on phased cutover, owners per workstream, and weekly checkpoint slides. Same meeting series as the April 8 kickoff we have been calling the billing migration kickoff."
+        },
+        {
+          "role": "assistant",
+          "content": "Recap stored: Atlas kickoff held this morning aligned on phased cutover, per-workstream owners, and weekly checkpoint slides; same series as the April 8 billing migration kickoff."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-04-07T17:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "How many distinct meetings about the Atlas billing migration kickoff should memory reflect if extraction is working correctly?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "meeting_atlas_billing_migration_kickoff",
+      "type": "entity",
+      "value": "Atlas billing migration kickoff (April 8, 2026, 10:00 Pacific; phased cutover, rollback criteria, comms; attendees include infra and finance)",
+      "introduced_in": 2,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 7,
+    "prompt": "How many distinct meetings about the Atlas billing migration kickoff should memory reflect if extraction is working correctly?",
+    "required_capabilities": ["retrieval", "deduplication"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "1 meeting (Atlas billing migration kickoff; April 8 10am PT; same event as Tuesday next week / this morning recap phrasing)",
+    "value_history": [
+      {
+        "value": "Kickoff Tuesday next week 10am PT; Priya, Jordan, user",
+        "as_of": "2026-04-03T15:30:00Z",
+        "source_session": 2
+      },
+      {
+        "value": "April 8 10:00 PT; cutover, rollback, comms; infra + finance (Luis)",
+        "as_of": "2026-04-05T11:20:00Z",
+        "source_session": 4
+      },
+      {
+        "value": "Same meeting held morning of April 7 recap; aligned phased cutover and owners",
+        "as_of": "2026-04-07T16:45:00Z",
+        "source_session": 6
+      }
+    ],
+    "provenance": {
+      "source_session": 2,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "entity_count_and_event_merge",
+      "notes": "Pass if the system answers one kickoff meeting and reconciles date drift (Tuesday next week vs April 8 vs recap timing) as one event. Fail if it materializes multiple kickoff meetings for Atlas billing migration."
+    },
+    "expected_entity_count": 1
+  },
+  "failure_modes": ["extraction_drift"],
+  "interference": [
+    {
+      "type": "near_duplicate",
+      "description": "Session 3 references a sales pipeline review and session 5 a vendor security interview; both are meetings but unrelated to Atlas and must not merge with the kickoff."
+    },
+    {
+      "type": "near_duplicate",
+      "description": "Tuesday next week versus explicit April 8 versus this morning recap are near-duplicate descriptors for the same kickoff; metadata drift should not fork entities."
+    }
+  ]
+}

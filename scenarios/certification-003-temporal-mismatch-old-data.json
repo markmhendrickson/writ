@@ -1,0 +1,163 @@
+{
+  "scenario_id": "certification-003-temporal-mismatch-old-data",
+  "version": "1.0.0",
+  "category": "certification",
+  "description": "The only stored vendor pricing for Northwind Analytics enterprise tier is from roughly six months ago. The probe asks for current pricing. The system must surface the last known value while certifying low temporal confidence so the user does not treat stale pricing as live list price.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2025-10-14T17:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Procurement thread closeout: Northwind Analytics quoted enterprise tier at $18 per seat per month on annual prepay, 500 seat minimum, net-30. That's the number we're using for FY26 planning unless they send an updated sheet."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded. Northwind Analytics enterprise: $18/seat/month annual prepay, 500 seat minimum, net-30, for FY26 planning unless superseded by a new quote."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2025-11-03T10:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you compress this paragraph about our logging pipeline into two sentences for the architecture wiki?"
+        },
+        {
+          "role": "assistant",
+          "content": "We ingest service logs into a partitioned cold store with daily compaction and indexed trace IDs for incident lookup. Access is read-mostly via a thin query API with row-level ACLs mirrored from IAM."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2025-12-11T14:55:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Draft a polite nudge to Northwind asking for Q1 office hours, no pricing discussion yet."
+        },
+        {
+          "role": "assistant",
+          "content": "Subject: Q1 enablement office hours — Body: Hi team, hoping to schedule a short Q1 enablement session for our solution architects. No contract changes on our side; just looking for office hours coverage. Thanks."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-01-09T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: what's a reasonable SLO for internal documentation search if we only have a few hundred Confluence spaces?"
+        },
+        {
+          "role": "assistant",
+          "content": "For low corpus internal search, teams often target ~500ms p95 for interactive queries and track zero-result rate separately; tune stemming and synonyms before chasing sub-100ms."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-20T11:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Help me word a one-liner for the vendor risk register: dependency on Northwind for embedded analytics."
+        },
+        {
+          "role": "assistant",
+          "content": "Vendor risk: embedded analytics depends on Northwind Analytics availability and roadmap alignment; mitigations include export APIs and quarterly business reviews."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-28T16:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For the board appendix, summarize in one sentence why we have not re-run vendor pricing benchmarks this quarter."
+        },
+        {
+          "role": "assistant",
+          "content": "We deferred benchmark reruns this quarter to avoid churn during the Horizon billing rewrite program freeze."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-04-15T13:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I need to answer finance today: what's the current pricing for Northwind Analytics enterprise tier?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "northwind_analytics_enterprise_pricing",
+      "type": "mutable",
+      "value": "$18 per seat per month annual prepay, 500 seat minimum, net-30 (last quoted 2025-10-14)",
+      "introduced_in": 1,
+      "updated_in": 1,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    },
+    {
+      "id": "northwind_pricing_last_observation_at",
+      "type": "mutable",
+      "value": "2025-10-14T17:00:00Z",
+      "introduced_in": 1,
+      "updated_in": 1,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 7,
+    "prompt": "I need to answer finance today: what's the current pricing for Northwind Analytics enterprise tier?",
+    "required_capabilities": ["retrieval", "pre_delivery_certification", "temporal_freshness"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "$18 per seat per month on annual prepay, 500 seat minimum, net-30 (last known quote; observation age ~6 months)",
+    "value_history": [
+      {
+        "value": "$18 per seat per month annual prepay, 500 seat minimum, net-30",
+        "as_of": "2025-10-14T17:00:00Z",
+        "source_session": 1
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["18", "stale", "outdated", "October", "2025", "months", "last", "quote", "verify", "confirm"],
+      "reject_elements": ["asserting list price is definitively current with no freshness caveat"],
+      "notes": "Must restate the stored $18/seat/month terms and certify temporal mismatch: no pricing refresh in memory since ~2025-10-14; user should reconfirm with vendor before contractual use."
+    },
+    "expected_integrity_flag": true
+  },
+  "failure_modes": ["certification_miss", "stale_memory"],
+  "interference": [
+    {
+      "type": "temporal_staleness",
+      "description": "No sessions after 2025-10-14 update Northwind pricing, but several recent sessions discuss Northwind in other contexts. Retrieval may latch onto recent irrelevant mentions and omit observation age."
+    },
+    {
+      "type": "volume",
+      "description": "Sessions 2–6 add unrelated assistant prose that can dilute the single pricing observation from session 1."
+    }
+  ]
+}

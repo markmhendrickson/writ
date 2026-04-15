@@ -1,0 +1,182 @@
+{
+  "scenario_id": "trust_hierarchy-002-agreed-deadline-vs-extracted",
+  "version": "1.0.0",
+  "category": "trust_hierarchy",
+  "description": "The user and assistant explicitly agree on a March 15 delivery deadline for the Polaris rollout. Later, a tangential thread mentions March 10 in a different context (internal demo dry-run), and an extraction pipeline could mis-label that as the project deadline. The probe asks for the agreed rollout deadline; March 15 must win as agreed_upon over agent_extracted noise.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-04T15:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Polaris rollout planning is messy. Can you help me brainstorm risks for the executive readout next week?"
+        },
+        {
+          "role": "assistant",
+          "content": "Common risks: dependency slips on the data migration, underestimated cutover testing, and unclear rollback ownership. We can structure the readout around mitigations and decision points."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-11T12:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated work thing: I need a concise explanation of why we can't move our Postgres major version upgrade to the same weekend as the Polaris work."
+        },
+        {
+          "role": "assistant",
+          "content": "You can cite blast radius: two high-risk changes in one weekend reduces observability focus, lengthens incident response, and makes rollback sequencing ambiguous."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-02-26T09:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Let's lock the Polaris customer-facing rollout deadline. I want March 15 end-of-day in the launch comms. Can we agree that's the official date unless the steering committee objects in writing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Agreed. Official Polaris customer-facing rollout deadline: March 15 end-of-day, pending only a written objection from the steering committee."
+        },
+        {
+          "role": "user",
+          "content": "Perfect — treat that as committed for planning purposes."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-05T18:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you suggest a checklist for verifying feature flags before a staged rollout?"
+        },
+        {
+          "role": "assistant",
+          "content": "Checklist: confirm flag defaults per environment, validate targeting rules, verify metrics dashboards for flag exposure, run a canary cohort, and document rollback steps including flag kill switches."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-03-12T14:25:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I need help tightening language in an email to support about expected ticket volume during cutover."
+        },
+        {
+          "role": "assistant",
+          "content": "Keep expectations explicit: anticipated spike window, severity definitions, and what evidence you need from customers to escalate quickly."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-03-20T10:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Polaris question: do you think we should publish a maintenance window notice even if we expect zero downtime?"
+        },
+        {
+          "role": "assistant",
+          "content": "Yes—publish a narrow maintenance window if behavior could change observably (latency, retries, auth edge cases) even if you do not expect hard downtime."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-03-28T16:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Internal dry-run scheduling is annoying. The team keeps floating March 10 for a pretend launch rehearsal, but that's not customer-facing—just a tabletop plus smoke tests. Don't confuse that with the real launch date."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. March 10 is being discussed as an internal rehearsal date only, separate from the customer-facing launch timeline."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-04-02T11:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Before I update the exec slide: what deadline did we commit to for the Polaris customer-facing rollout?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "polaris_customer_rollout_deadline",
+      "type": "mutable",
+      "value": "March 15 (end-of-day), agreed as official customer-facing rollout date unless steering committee objects in writing",
+      "introduced_in": 3,
+      "updated_in": 3,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [],
+      "source_authority": "agreed_upon"
+    },
+    {
+      "id": "polaris_internal_rehearsal_date_mention",
+      "type": "mutable",
+      "value": "March 10 discussed as internal rehearsal / tabletop / smoke test date only (not customer-facing launch)",
+      "introduced_in": 7,
+      "updated_in": 7,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [],
+      "source_authority": "agent_extracted"
+    }
+  ],
+  "probe": {
+    "session": 8,
+    "prompt": "What deadline did we commit to for the Polaris customer-facing rollout?",
+    "required_capabilities": ["retrieval", "update_tracking", "source_authority_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "March 15 (end-of-day)",
+    "value_history": [
+      {
+        "value": "March 15 (end-of-day), official customer-facing rollout deadline (agreed)",
+        "as_of": "2026-02-26T09:45:00Z",
+        "source_session": 3
+      }
+    ],
+    "provenance": {
+      "source_session": 3,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["March 15"],
+      "reject_elements": ["March 10"],
+      "notes": "March 10 appears only as an internal rehearsal mention and must not override the agreed customer-facing deadline."
+    }
+  },
+  "failure_modes": ["authority_violation", "stale_memory"],
+  "interference": [
+    {
+      "type": "numeric_near_miss",
+      "description": "March 10 appears in a later session with explicit calendar language, which can trick extraction systems into promoting it as the rollout deadline despite the user clarifying it is not customer-facing."
+    },
+    {
+      "type": "volume",
+      "description": "Multiple sessions discuss Polaris risks, flags, and comms without restating the deadline, increasing reliance on correct authority weighting rather than simple recency."
+    }
+  ]
+}

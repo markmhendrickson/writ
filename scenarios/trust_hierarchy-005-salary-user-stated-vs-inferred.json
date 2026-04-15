@@ -1,0 +1,178 @@
+{
+  "scenario_id": "trust_hierarchy-005-salary-user-stated-vs-inferred",
+  "version": "1.0.0",
+  "category": "trust_hierarchy",
+  "description": "In a private planning thread, the user states their current salary as $120K. Later, the user pastes a public job posting with an advertised range of $95K–$115K for a similar role, and the assistant infers compensation might fall in that band. The probe asks for the user's salary; the direct user statement must beat inferred range from a third-party posting.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-01-11T20:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Private context for household budgeting only: my current salary is $120K base. Please treat that as authoritative if budgeting questions come up later—postings and rumors aren't reliable."
+        },
+        {
+          "role": "assistant",
+          "content": "Understood. For budgeting context, I'll treat your stated base salary as $120K unless you explicitly update it."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-01-18T12:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: can you help me write a concise weekly update for my manager about migration progress?"
+        },
+        {
+          "role": "assistant",
+          "content": "Use three bullets: completed, in flight with owners, and risks/blocked items with asks. Keep metrics concrete (percent migrated, error rates) rather than narrative."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-01-27T09:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What's a good framework for deciding between fixing tech debt now versus shipping a customer-facing improvement?"
+        },
+        {
+          "role": "assistant",
+          "content": "Compare blast radius, reversibility, customer impact, and whether debt is actively increasing incident rate. If debt is causing predictable outages or slowing all delivery, it often wins."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-02-05T15:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Help me wordsmith a polite LinkedIn message to a former coworker I haven't talked to in two years."
+        },
+        {
+          "role": "assistant",
+          "content": "Keep it short: remind them where you worked together, state why you're reaching out now, and propose a specific low-commitment ask (15-minute call) with flexible timing."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-02-14T18:20:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm evaluating whether to apply internally. Here's the public job description text: 'Senior Engineer, base salary range $95K–$115K depending on experience.' Ignore that range for my personal comp facts—I'm pasting it only for role responsibilities."
+        },
+        {
+          "role": "assistant",
+          "content": "For responsibilities, I can help map the posting to your strengths. Separately, if we're inferring compensation anchors from public ranges, this posting suggests a band around $95K–$115K for that role level—though that may not match any individual's current pay."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-02-23T10:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you give me interview prep prompts for system design around rate limiting?"
+        },
+        {
+          "role": "assistant",
+          "content": "Practice articulating token bucket vs leaky bucket, distributed coordination, fairness vs abuse prevention, and observability for false positives."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-03-06T14:55:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated: what's a good way to document API deprecation timelines so customers actually read them?"
+        },
+        {
+          "role": "assistant",
+          "content": "Publish a deprecation header on responses, email targeted notices with migration examples, and keep a single source-of-truth changelog entry with explicit sunset dates."
+        }
+      ]
+    },
+    {
+      "session_id": 8,
+      "timestamp": "2026-03-19T11:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Quick sanity check for my budget spreadsheet: what salary number should I use for my current base comp?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "user_base_salary_current",
+      "type": "mutable",
+      "value": "$120K base (user stated as current salary for budgeting)",
+      "introduced_in": 1,
+      "updated_in": 1,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [],
+      "source_authority": "user_stated"
+    },
+    {
+      "id": "public_posting_salary_range_anchor",
+      "type": "mutable",
+      "value": "$95K–$115K (advertised range from pasted job description; not user-confirmed personal compensation)",
+      "introduced_in": 5,
+      "updated_in": 5,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [],
+      "source_authority": "agent_extracted"
+    }
+  ],
+  "probe": {
+    "session": 8,
+    "prompt": "What salary number should I use for my current base comp?",
+    "required_capabilities": ["retrieval", "update_tracking", "source_authority_tracking"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "$120K",
+    "value_history": [
+      {
+        "value": "$120K base (explicit user statement)",
+        "as_of": "2026-01-11T20:10:00Z",
+        "source_session": 1
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["120"],
+      "reject_elements": ["95", "115"],
+      "notes": "Must not substitute the job posting band for the user's stated current base. Accepting 120K or $120,000 style variants is fine."
+    }
+  },
+  "failure_modes": ["authority_violation", "stale_memory"],
+  "interference": [
+    {
+      "type": "numeric_near_miss",
+      "description": "Session 5 contains a concrete salary band ($95K–$115K) from a third-party posting and assistant commentary that could be mistaken as the user's compensation."
+    },
+    {
+      "type": "volume",
+      "description": "Multiple unrelated career and interview prep sessions separate the authoritative salary statement from the probe, increasing reliance on authority rather than recency."
+    }
+  ]
+}

@@ -95,8 +95,18 @@ Declare what the adapter supports. The evaluator uses this to skip metrics the a
   supports_temporal_replay: boolean;
   supports_provenance: boolean;
   supports_abstention: boolean;
+  supports_source_authority: boolean;
+  supports_deduplication: boolean;
+  supports_lifecycle: boolean;
+  supports_pre_delivery_certification: boolean;
 }
 ```
+
+New capabilities for extended dimensions:
+- `supports_source_authority`: system tracks write authority levels (user_stated > agent_extracted)
+- `supports_deduplication`: system detects and consolidates near-duplicate entities
+- `supports_lifecycle`: system tracks fact lifecycle states (active/superseded/expired)
+- `supports_pre_delivery_certification`: system can flag integrity issues before returning results
 
 ### `reset()`
 
@@ -165,6 +175,10 @@ export class MyAdapter implements MemoryAdapter {
       supports_temporal_replay: false,
       supports_provenance: false,
       supports_abstention: false,
+      supports_source_authority: false,
+      supports_deduplication: false,
+      supports_lifecycle: false,
+      supports_pre_delivery_certification: false,
     };
   }
 
@@ -181,4 +195,4 @@ export class MyAdapter implements MemoryAdapter {
 | Adapter | File | Capabilities |
 |---------|------|-------------|
 | `baseline` | `src/adapters/baseline.ts` | None (naive KV store, overwrites on update) |
-| `neotoma` | `src/adapters/neotoma.ts` | History, temporal replay, provenance |
+| `neotoma` | `src/adapters/neotoma.ts` | History, temporal replay, provenance, source authority |

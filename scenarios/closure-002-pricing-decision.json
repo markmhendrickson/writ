@@ -1,0 +1,145 @@
+{
+  "scenario_id": "closure-002-pricing-decision",
+  "version": "1.0.0",
+  "category": "closure",
+  "description": "A pricing structure is discussed across multiple sessions with different proposals. The final decision is made in a short session. Probe asks for current pricing. Tests whether the system returns the resolved decision rather than the most-discussed option.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-02-10T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We're rethinking pricing. Current plan: $29/month for Pro, $99/month for Team. The growth team is pushing for $19/month Pro to increase conversion."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted. Current pricing is $29/mo Pro, $99/mo Team. Growth team proposes dropping Pro to $19/mo."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-02-20T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Had a long debate about the $19 price point. Finance says it kills margins. We modeled $24/month as a compromise and $49/month for a new Business tier between Pro and Team."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated. Compromise model under discussion: $24/mo Pro, new $49/mo Business tier, $99/mo Team."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-03-05T11:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "More pricing discussions. We ran an A/B test and the $19 price point actually had worse conversion than $29 because of perceived quality concerns. The team is leaning back toward keeping $29 for Pro."
+        },
+        {
+          "role": "assistant",
+          "content": "Interesting. A/B test showed $19 hurt conversion vs $29. Team leaning toward keeping $29 Pro price."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-03-15T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Final pricing decision: we're keeping $29/month for Pro, adding a $59/month Business tier with team features, and raising Team to $119/month with SSO and audit logs. Effective April 1st for new customers."
+        },
+        {
+          "role": "assistant",
+          "content": "Final pricing locked in. Pro $29/mo, Business $59/mo (new), Team $119/mo. Effective April 1st for new customers."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-04-10T15:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "A prospect just asked about our pricing tiers. What are our current prices?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "pro_price",
+      "type": "mutable",
+      "value": "$29/month",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "$29/month (current)", "as_of": "2026-02-10T10:00:00Z", "source_session": 1 },
+        { "value": "$24/month (proposed compromise)", "as_of": "2026-02-20T14:00:00Z", "source_session": 2 },
+        { "value": "$29/month (A/B test validated)", "as_of": "2026-03-05T11:00:00Z", "source_session": 3 },
+        { "value": "$29/month (final)", "as_of": "2026-03-15T09:00:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "business_tier",
+      "type": "mutable",
+      "value": "$59/month",
+      "introduced_in": 2,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "$49/month (proposed)", "as_of": "2026-02-20T14:00:00Z", "source_session": 2 },
+        { "value": "$59/month (final)", "as_of": "2026-03-15T09:00:00Z", "source_session": 4 }
+      ]
+    },
+    {
+      "id": "team_price",
+      "type": "mutable",
+      "value": "$119/month",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "$99/month", "as_of": "2026-02-10T10:00:00Z", "source_session": 1 },
+        { "value": "$119/month (final, with SSO and audit logs)", "as_of": "2026-03-15T09:00:00Z", "source_session": 4 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What are our current prices?",
+    "required_capabilities": ["retrieval", "update_tracking", "resolution_awareness"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Pro $29/month, Business $59/month, Team $119/month",
+    "value_history": [],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["$29", "$59", "$119", "Pro", "Business", "Team"],
+      "reject_elements": ["$19", "$24", "$49", "$99"],
+      "notes": "System must return the final approved pricing from session 4, not any of the earlier proposals ($19, $24, $49) or the original Team price ($99). Returning a draft price as current is a false closure failure."
+    }
+  },
+  "failure_modes": ["false_closure", "stale_memory", "resolution_blindness"],
+  "interference": [
+    {
+      "type": "volume",
+      "description": "The $19 and $24 price points were discussed at greater length across sessions 1-3 than the final decision in session 4. The $19 proposal in particular is mentioned in two sessions. Systems biased toward frequently-discussed or recently-retrieved facts may surface draft prices."
+    }
+  ]
+}

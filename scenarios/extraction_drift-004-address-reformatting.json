@@ -1,0 +1,161 @@
+{
+  "scenario_id": "extraction_drift-004-address-reformatting",
+  "version": "1.0.0",
+  "category": "extraction_drift",
+  "description": "The same office address appears in three sessions with street abbreviation, postal-style expansion, and mixed punctuation. Noise includes another Springfield mention without a street number. Tests whether location extraction collapses formatting variants into one place entity.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-05-10T13:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Ship the prototype handoff kit to 123 Main St, Springfield. Use overnight service only if it misses the truck cutoff."
+        },
+        {
+          "role": "assistant",
+          "content": "Shipping instructions captured: 123 Main St, Springfield; overnight only if truck cutoff missed."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-05-11T09:30:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated research: list three US cities named Springfield without tying them to our shipment."
+        },
+        {
+          "role": "assistant",
+          "content": "Examples include Springfield, Illinois; Springfield, Missouri; and Springfield, Massachusetts."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-05-12T11:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Facilities confirmed the receiving dock address as 123 Main Street, Springfield, IL for carrier manifests."
+        },
+        {
+          "role": "assistant",
+          "content": "Dock address updated for carriers: 123 Main Street, Springfield, IL."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-05-13T16:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Draft an out-of-office reply for me. Do not include any street addresses."
+        },
+        {
+          "role": "assistant",
+          "content": "OOO draft: I am away with limited email access and will respond after my return."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-05-14T10:25:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The notary packet lists the site as 123 Main St., Springfield Illinois on page two."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted for records: notary packet lists site at 123 Main St., Springfield Illinois."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-05-14T14:40:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We are visiting a client near Oak Street in Springfield this afternoon. Totally separate from the dock."
+        },
+        {
+          "role": "assistant",
+          "content": "Acknowledged: separate client visit near Oak Street, Springfield, unrelated to the dock shipment context."
+        }
+      ]
+    },
+    {
+      "session_id": 7,
+      "timestamp": "2026-05-15T08:05:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the canonical office or dock address we have been using for 123 Main in Springfield, stated once in a single normalized line?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "location_springfield_main_dock",
+      "type": "entity",
+      "value": "123 Main Street, Springfield, IL (dock / receiving; formatting variants normalized)",
+      "introduced_in": 1,
+      "updated_in": null,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": []
+    }
+  ],
+  "probe": {
+    "session": 7,
+    "prompt": "What is the canonical office or dock address we have been using for 123 Main in Springfield, stated once in a single normalized line?",
+    "required_capabilities": ["retrieval", "deduplication"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "123 Main Street, Springfield, IL (single location; St/St./Street and Illinois vs IL are formatting variants of the same address)",
+    "value_history": [
+      {
+        "value": "123 Main St, Springfield",
+        "as_of": "2026-05-10T13:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "123 Main Street, Springfield, IL",
+        "as_of": "2026-05-12T11:10:00Z",
+        "source_session": 3
+      },
+      {
+        "value": "123 Main St., Springfield Illinois",
+        "as_of": "2026-05-14T10:25:00Z",
+        "source_session": 5
+      }
+    ],
+    "provenance": {
+      "source_session": 1,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "address_normalization",
+      "notes": "Pass if one canonical address is returned and variants are not reported as separate locations. ZIP may be omitted unless inferable; Oak Street visit must not merge. Fail if multiple 123 Main entities or conflation with unrelated Springfield pins."
+    },
+    "expected_entity_count": 1
+  },
+  "failure_modes": ["extraction_drift"],
+  "interference": [
+    {
+      "type": "near_duplicate",
+      "description": "Multiple Springfields exist nationally; generic Springfield lists and Oak Street Springfield visit are geographic near-duplicates that must not merge with 123 Main."
+    },
+    {
+      "type": "near_duplicate",
+      "description": "Main St versus Main Street versus Main St. are formatting near-duplicates for the same dock address and should dedupe to one location entity."
+    }
+  ]
+}

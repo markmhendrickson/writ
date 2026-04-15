@@ -6,6 +6,13 @@ export type MemoryEventType =
   | "work_state"
   | "non_memory";
 
+export type SourceAuthority =
+  | "user_stated"
+  | "user_confirmed"
+  | "agreed_upon"
+  | "agent_extracted"
+  | "ai_summarized";
+
 export type ScenarioCategory =
   | "drift"
   | "temporal"
@@ -16,7 +23,13 @@ export type ScenarioCategory =
   | "update"
   | "multi_hop"
   | "abstention"
-  | "work_state";
+  | "work_state"
+  | "closure"
+  | "trust_hierarchy"
+  | "extraction_drift"
+  | "failure_injection"
+  | "lifecycle"
+  | "certification";
 
 export type RequiredCapability =
   | "retrieval"
@@ -27,7 +40,13 @@ export type RequiredCapability =
   | "constraint_application"
   | "multi_hop"
   | "selective_forgetting"
-  | "abstention";
+  | "abstention"
+  | "resolution_awareness"
+  | "source_authority_tracking"
+  | "deduplication"
+  | "failure_resilience"
+  | "lifecycle_awareness"
+  | "pre_delivery_certification";
 
 export type FailureMode =
   | "stale_memory"
@@ -39,7 +58,14 @@ export type FailureMode =
   | "over_retention"
   | "false_confidence"
   | "silent_drift"
-  | "provenance_loss";
+  | "provenance_loss"
+  | "authority_violation"
+  | "extraction_drift"
+  | "flush_corruption"
+  | "lifecycle_blindness"
+  | "certification_miss"
+  | "false_closure"
+  | "resolution_blindness";
 
 export type EvaluationMode = "no_memory" | "native_memory" | "oracle_memory";
 
@@ -92,6 +118,7 @@ export interface MemoryEvent {
   retracted_in: number | null;
   should_persist: boolean;
   previous_values: ValueHistoryEntry[];
+  source_authority?: SourceAuthority;
 }
 
 export interface TemporalQuery {
@@ -113,12 +140,23 @@ export interface ProvenanceInfo {
   agent_or_user: "user" | "assistant" | "system";
 }
 
+export type LifecycleStatus = "active" | "resolved" | "superseded" | "expired" | "reinstated";
+
+export interface LifecycleState {
+  status: LifecycleStatus;
+  as_of: string;
+  reason?: string;
+}
+
 export interface GroundTruth {
   current_value: unknown;
   value_history: ValueHistoryEntry[];
   provenance: ProvenanceInfo;
   eval_rubric?: EvalRubric;
   constraint_check?: ConstraintCheck;
+  lifecycle_history?: LifecycleState[];
+  expected_entity_count?: number;
+  expected_integrity_flag?: boolean;
 }
 
 export interface Scenario {
@@ -194,6 +232,12 @@ export interface ScenarioScores {
   constraint_respected: boolean | null;
   abstention_correct: boolean | null;
   hallucination_detected: boolean;
+  source_authority_intact: boolean | null;
+  dedup_correct: boolean | null;
+  failure_resilient: boolean | null;
+  lifecycle_current_correct: boolean | null;
+  lifecycle_temporal_correct: boolean | null;
+  pre_delivery_flagged: boolean | null;
 }
 
 export interface BenchmarkReport {
@@ -217,5 +261,10 @@ export interface AggregateScores {
   constraint_consistency: number;
   hallucination_rate: number;
   abstention_quality: number;
+  source_authority_integrity: number;
+  dedup_accuracy: number;
+  failure_resilience: number;
+  lifecycle_accuracy: number;
+  pre_delivery_detection: number;
   scenarios_evaluated: number;
 }

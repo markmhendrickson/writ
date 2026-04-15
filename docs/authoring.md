@@ -31,7 +31,7 @@ Always `"1.0.0"` for the initial dataset release.
 
 ### `category`
 
-One of: `drift`, `temporal`, `provenance`, `constraint`, `entity`, `forgetting`, `update`, `multi_hop`, `abstention`, `work_state`.
+One of: `drift`, `temporal`, `provenance`, `constraint`, `entity`, `forgetting`, `update`, `multi_hop`, `abstention`, `work_state`, `closure`, `trust_hierarchy`, `extraction_drift`, `failure_injection`, `lifecycle`, `certification`.
 
 ### `sessions`
 
@@ -163,7 +163,7 @@ For constraint scenarios, define what the answer must and must not contain:
 
 List which failures this scenario is designed to detect:
 
-Valid modes: `stale_memory`, `missing_memory`, `incorrect_generalization`, `memory_hallucination`, `constraint_violation`, `retrieval_miss`, `over_retention`, `false_confidence`, `silent_drift`, `provenance_loss`.
+Valid modes: `stale_memory`, `missing_memory`, `incorrect_generalization`, `memory_hallucination`, `constraint_violation`, `retrieval_miss`, `over_retention`, `false_confidence`, `silent_drift`, `provenance_loss`, `authority_violation`, `extraction_drift`, `flush_corruption`, `lifecycle_blindness`, `certification_miss`, `false_closure`, `resolution_blindness`.
 
 ### `interference`
 
@@ -184,7 +184,57 @@ Optional array of distractors embedded in the scenario:
 ]
 ```
 
-Types: `near_duplicate`, `contradicting`, `low_salience`, `distractor`.
+Types: `near_duplicate`, `contradicting`, `low_salience`, `distractor`, `authority_overwrite`, `paraphrase_drift`, `volume`.
+
+### `source_authority` (on memory events)
+
+For `trust_hierarchy` scenarios, tag each memory event with its authority level:
+
+```json
+{
+  "id": "email",
+  "type": "mutable",
+  "source_authority": "user_stated",
+  ...
+}
+```
+
+Valid values: `user_stated` (highest), `user_confirmed`, `agreed_upon`, `agent_extracted`, `ai_summarized` (lowest).
+
+### `expected_entity_count` (on ground_truth)
+
+For `extraction_drift` scenarios, specify how many distinct entities should exist:
+
+```json
+{
+  "expected_entity_count": 1
+}
+```
+
+### `lifecycle_history` (on ground_truth)
+
+For `lifecycle` scenarios, specify the status transition timeline:
+
+```json
+{
+  "lifecycle_history": [
+    { "status": "active", "as_of": "2026-01-15T10:00:00Z" },
+    { "status": "superseded", "as_of": "2026-06-01T10:00:00Z" }
+  ]
+}
+```
+
+Valid status values: `active`, `resolved`, `superseded`, `expired`, `reinstated`.
+
+### `expected_integrity_flag` (on ground_truth)
+
+For `certification` scenarios, specify whether the system should flag an integrity issue:
+
+```json
+{
+  "expected_integrity_flag": true
+}
+```
 
 ## Validation
 

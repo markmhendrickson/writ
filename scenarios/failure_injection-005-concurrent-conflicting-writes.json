@@ -1,0 +1,154 @@
+{
+  "scenario_id": "failure_injection-005-concurrent-conflicting-writes",
+  "version": "1.0.0",
+  "category": "failure_injection",
+  "description": "Two operators nearly simultaneously update the same durable deployment target field from different session handles: session 3 records AWS while session 4 records GCP only seconds later. A naive last-write-wins implementation may reorder commits after flush retries; a correct system must either return the chronologically latest explicit user statement (GCP) or refuse to pick silently and instead surface the conflict. The probe checks behavior under concurrent conflicting writes.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-05-10T13:10:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Program-manager context only: we're standardizing runbooks for the OpenClaw production cutover. No deployment vendor choice locked yet—just collecting risks."
+        },
+        {
+          "role": "assistant",
+          "content": "Acknowledged. I'll track risks and runbook structure without assuming a cloud vendor until you record a durable decision."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-05-11T09:45:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you outline a generic blue/green checklist that works for any cloud? Keep vendor names out."
+        },
+        {
+          "role": "assistant",
+          "content": "Blue/green checklist: dual stacks, health gates, synthetic probes, traffic shift with instant rollback, schema migration compatibility, observability diff on error budgets, explicit owner on the cutover command."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-05-12T22:18:05Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "[Alex, infra-oncall] Durable decision for the Hermes bridge MVP deploy target: AWS (primary region us-west-2). Please store that as the canonical deploy target field—I'm racing another change from Jordan's session."
+        },
+        {
+          "role": "assistant",
+          "content": "Stored canonical Hermes bridge MVP deploy target as AWS with primary region us-west-2 pending any newer conflicting durable writes."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-05-12T22:18:11Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "[Jordan, platform lead] Conflicting durable update from my side: the Hermes bridge MVP deploy target must be GCP (region us-central1) because compliance signed off only there. If Alex's AWS note landed at nearly the same time, treat this message as later and flag the conflict for humans."
+        },
+        {
+          "role": "assistant",
+          "content": "Recorded GCP (us-central1) as a conflicting deploy target update relative to AWS (us-west-2). I'll preserve both sources with timestamps rather than silently merging."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-05-13T11:27:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Unrelated doc hygiene: give me a one-paragraph explanation of why we version WRIT scenarios with semver for reviewers."
+        },
+        {
+          "role": "assistant",
+          "content": "Semver on WRIT scenarios signals breaking expectation changes versus clarifications, so benchmark runners can pin suites, detect incompatible rubric updates, and keep historical scores comparable."
+        }
+      ]
+    },
+    {
+      "session_id": 6,
+      "timestamp": "2026-05-14T15:06:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Audit question only: what is the Hermes bridge MVP deploy target according to durable memory, and if there was contention, how was it resolved?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "hermes_bridge_mvp_deploy_target",
+      "type": "mutable",
+      "value": "GCP (us-central1)",
+      "introduced_in": 3,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "AWS (us-west-2)",
+          "as_of": "2026-05-12T22:18:05Z",
+          "source_session": 3
+        },
+        {
+          "value": "GCP (us-central1)",
+          "as_of": "2026-05-12T22:18:11Z",
+          "source_session": 4
+        }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 6,
+    "prompt": "Audit question only: what is the Hermes bridge MVP deploy target according to durable memory, and if there was contention, how was it resolved?",
+    "required_capabilities": ["retrieval", "failure_resilience"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "GCP (us-central1)",
+    "value_history": [
+      {
+        "value": "AWS (us-west-2)",
+        "as_of": "2026-05-12T22:18:05Z",
+        "source_session": 3
+      },
+      {
+        "value": "GCP (us-central1)",
+        "as_of": "2026-05-12T22:18:11Z",
+        "source_session": 4
+      }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["GCP", "us-central1"],
+      "reject_elements": [],
+      "notes": "Pass if the answer (1) states GCP us-central1 as the latest durable value with explicit mention of the near-simultaneous AWS write, or (2) refuses a single winner and instead surfaces both AWS us-west-2 and GCP us-central1 with actors Alex and Jordan and asks for human resolution. Fail if it silently returns only AWS, silently merges into a hybrid cloud without conflict, or omits Jordan's later timestamp."
+    }
+  },
+  "failure_modes": ["flush_corruption", "stale_memory"],
+  "interference": [
+    {
+      "type": "concurrent_commit",
+      "description": "Simulates Hermes/OpenClaw-style overlapping session handles where flush ordering can invert under retry or fsync latency, so naive durable storage may resurrect AWS after GCP unless writes carry monotonic clocks or conflict metadata."
+    },
+    {
+      "type": "authority_ambiguity",
+      "description": "Both messages claim durable authority (infra oncall vs platform lead), tempting heuristic 'role wins' shortcuts instead of timestamped facts or explicit conflict reporting."
+    }
+  ]
+}

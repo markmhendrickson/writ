@@ -1,0 +1,171 @@
+{
+  "scenario_id": "closure-001-superseded-policy",
+  "version": "1.0.0",
+  "category": "closure",
+  "description": "A contractor access policy is debated in Q3, then formally approved in a different form by the board in November. Probe asks for the current policy. System must return the November board-approved version, not the Q3 draft discussion. Tests whether the system distinguishes resolved decisions from earlier discussion context.",
+  "sessions": [
+    {
+      "session_id": 1,
+      "timestamp": "2026-07-08T14:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We're drafting a new contractor access policy. The proposal is: contractors get full VPN access for 90 days, renewed on manager approval. Legal wants to review before we finalize."
+        },
+        {
+          "role": "assistant",
+          "content": "Noted. Draft contractor access policy: full VPN access for 90 days, renewed on manager approval. Pending legal review."
+        }
+      ]
+    },
+    {
+      "session_id": 2,
+      "timestamp": "2026-08-15T10:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Legal flagged the 90-day full VPN access as too broad. They recommend scoped access per project with 30-day windows. We're still debating internally."
+        },
+        {
+          "role": "assistant",
+          "content": "Updated. Legal recommends scoped access per project with 30-day windows instead of full VPN for 90 days. Still under discussion."
+        }
+      ]
+    },
+    {
+      "session_id": 3,
+      "timestamp": "2026-09-22T16:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The team proposed a compromise: scoped VPN access for 60 days with automatic expiry and re-approval required. We're presenting this to the board next month."
+        },
+        {
+          "role": "assistant",
+          "content": "Got it. Compromise proposal for board: scoped VPN access, 60-day window, automatic expiry, re-approval required."
+        }
+      ]
+    },
+    {
+      "session_id": 4,
+      "timestamp": "2026-11-12T11:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "The board approved the contractor access policy yesterday. Final version: scoped access per project, 45-day window, automatic expiry, re-approval by both project lead and security team. Effective December 1st. This is the official policy now."
+        },
+        {
+          "role": "assistant",
+          "content": "Board-approved contractor access policy recorded. Scoped access per project, 45-day window, automatic expiry, re-approval by project lead and security team. Effective December 1st."
+        }
+      ]
+    },
+    {
+      "session_id": 5,
+      "timestamp": "2026-12-05T09:00:00Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "We're onboarding a new contractor next week. What is our contractor access policy?"
+        }
+      ]
+    }
+  ],
+  "memory_events": [
+    {
+      "id": "contractor_access_policy",
+      "type": "mutable",
+      "value": "Scoped access per project, 45-day window, automatic expiry, re-approval by project lead and security team",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        {
+          "value": "Full VPN access for 90 days, renewed on manager approval (draft, pending legal review)",
+          "as_of": "2026-07-08T14:00:00Z",
+          "source_session": 1
+        },
+        {
+          "value": "Scoped access per project with 30-day windows (legal recommendation, under discussion)",
+          "as_of": "2026-08-15T10:00:00Z",
+          "source_session": 2
+        },
+        {
+          "value": "Scoped VPN access, 60-day window, automatic expiry, re-approval required (compromise proposal for board)",
+          "as_of": "2026-09-22T16:00:00Z",
+          "source_session": 3
+        },
+        {
+          "value": "Scoped access per project, 45-day window, automatic expiry, re-approval by project lead and security team (board-approved, effective December 1st)",
+          "as_of": "2026-11-12T11:00:00Z",
+          "source_session": 4
+        }
+      ]
+    },
+    {
+      "id": "policy_status",
+      "type": "mutable",
+      "value": "approved",
+      "introduced_in": 1,
+      "updated_in": 4,
+      "retracted_in": null,
+      "should_persist": true,
+      "previous_values": [
+        { "value": "draft", "as_of": "2026-07-08T14:00:00Z", "source_session": 1 },
+        { "value": "under_review", "as_of": "2026-08-15T10:00:00Z", "source_session": 2 },
+        { "value": "proposed", "as_of": "2026-09-22T16:00:00Z", "source_session": 3 },
+        { "value": "approved", "as_of": "2026-11-12T11:00:00Z", "source_session": 4 }
+      ]
+    }
+  ],
+  "probe": {
+    "session": 5,
+    "prompt": "What is our contractor access policy?",
+    "required_capabilities": ["retrieval", "update_tracking", "resolution_awareness"],
+    "should_abstain": false
+  },
+  "ground_truth": {
+    "current_value": "Scoped access per project, 45-day window, automatic expiry, re-approval by project lead and security team",
+    "value_history": [
+      {
+        "value": "Full VPN access for 90 days, renewed on manager approval (draft)",
+        "as_of": "2026-07-08T14:00:00Z",
+        "source_session": 1
+      },
+      {
+        "value": "Scoped access per project, 30-day windows (legal recommendation)",
+        "as_of": "2026-08-15T10:00:00Z",
+        "source_session": 2
+      },
+      {
+        "value": "Scoped VPN access, 60-day window, automatic expiry (board proposal)",
+        "as_of": "2026-09-22T16:00:00Z",
+        "source_session": 3
+      },
+      {
+        "value": "Scoped access per project, 45-day window, automatic expiry, dual re-approval (board-approved)",
+        "as_of": "2026-11-12T11:00:00Z",
+        "source_session": 4
+      }
+    ],
+    "provenance": {
+      "source_session": 4,
+      "source_message_index": 0,
+      "agent_or_user": "user"
+    },
+    "eval_rubric": {
+      "method": "structured",
+      "required_elements": ["45-day", "scoped", "project lead", "security team", "automatic expiry"],
+      "reject_elements": ["90-day", "full VPN", "30-day", "60-day", "manager approval"],
+      "notes": "System must return the board-approved November policy, not any earlier draft. Returning draft details (90-day, full VPN, 30-day, 60-day, or manager-only approval) as the current policy is a false closure failure."
+    }
+  },
+  "failure_modes": ["false_closure", "stale_memory", "resolution_blindness"],
+  "interference": [
+    {
+      "type": "volume",
+      "description": "Three earlier versions of the policy exist in memory with more total session time spent discussing them than the final approved version. Retrieval-only systems may rank the longer discussions higher."
+    }
+  ]
+}

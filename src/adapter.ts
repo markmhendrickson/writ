@@ -55,4 +55,8 @@ export interface AdapterCapabilities {
   supports_temporal_replay: boolean;
   supports_provenance: boolean;
   supports_abstention: boolean;
+  supports_source_authority: boolean;
+  supports_deduplication: boolean;
+  supports_lifecycle: boolean;
+  supports_pre_delivery_certification: boolean;
 }
