@@ -4,6 +4,12 @@ WRIT now benchmarks the failure modes that actually break long-lived AI memory i
 ## Why This Release Exists
 This release expands WRIT in direct response to failure modes surfaced in the r/AIMemory discussion "No AI memory benchmark tests what actually breaks." That discussion highlighted five recurring gaps in real-world memory systems: lower-authority writes overwriting user-stated facts, extraction drift creating near-duplicate records, flush/restart failures corrupting state, facts lacking explicit superseded/expired lifecycle handling, and systems returning stale or conflicting state without certifying integrity before delivery.
 
+**Discussion sources (Reddit):**
+- [r/AIMemory search: "No AI memory benchmark tests what actually breaks"](https://www.reddit.com/r/AIMemory/search/?q=No+AI+memory+benchmark+tests+what+actually+breaks&restrict_sr=on&sort=relevance&t=all)
+- [r/AIMemory](https://www.reddit.com/r/AIMemory/)
+
+Related write-up (same title, off-Reddit mirror): [No AI memory benchmark tests what actually breaks](https://markmhendrickson.com/posts/no-ai-memory-benchmark-tests-what-actually-breaks).
+
 These failure classes map directly to the new WRIT dimensions:
 - User correction overwritten by later summaries -> `trust_hierarchy`
 - Same fact re-extracted in slightly different forms -> `extraction_drift`
