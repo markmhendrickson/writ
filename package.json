@@ -1,6 +1,6 @@
 {
   "name": "writ",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "WRIT: Write Integrity Test for AI memory — tests whether stored facts survive agent writes",
   "type": "module",
   "main": "dist/index.js",
